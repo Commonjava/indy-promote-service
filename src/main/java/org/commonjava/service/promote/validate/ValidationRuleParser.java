@@ -18,7 +18,6 @@ package org.commonjava.service.promote.validate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 
-import org.commonjava.service.promote.exception.PromotionValidationException;
 import org.commonjava.service.promote.model.ValidationRuleSet;
 import org.commonjava.service.promote.util.ScriptEngine;
 import org.slf4j.Logger;

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.service.promote.exception;
+package org.commonjava.service.promote.validate;
 
+import org.commonjava.service.promote.exception.PromotionException;
 import org.commonjava.service.promote.model.PromoteRequest;
 import org.commonjava.service.promote.model.StoreKey;
 

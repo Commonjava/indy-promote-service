@@ -16,7 +16,6 @@
 package org.commonjava.service.promote.validate;
 
 import org.commonjava.service.promote.config.PromoteConfig;
-import org.commonjava.service.promote.exception.PromotionValidationException;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.ValidationCatalogDTO;
 import org.commonjava.service.promote.model.ValidationRuleDTO;

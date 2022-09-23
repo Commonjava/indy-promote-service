@@ -22,43 +22,34 @@ import org.commonjava.cdi.util.weft.PoolWeftExecutorService;
 import org.commonjava.cdi.util.weft.WeftExecutorService;
 import org.commonjava.cdi.util.weft.WeftManaged;
 
-import org.commonjava.atlas.maven.graph.rel.ProjectRelationship;
 import org.commonjava.atlas.maven.ident.ref.ArtifactRef;
 import org.commonjava.atlas.maven.ident.ref.ProjectRef;
 import org.commonjava.atlas.maven.ident.ref.ProjectVersionRef;
 import org.commonjava.atlas.maven.ident.util.ArtifactPathInfo;
 import org.commonjava.indy.pkg.npm.content.PackagePath;
 import org.commonjava.indy.pkg.npm.model.PackageMetadata;
+
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.event.EventMetadata;
-import org.commonjava.maven.galley.io.checksum.ContentDigest;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.model.view.meta.MavenMetadataView;
 import org.commonjava.maven.galley.maven.parse.MavenMetadataReader;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 import org.commonjava.maven.galley.maven.rel.MavenModelProcessor;
-import org.commonjava.maven.galley.maven.rel.ModelProcessorConfig;
 import org.commonjava.maven.galley.maven.spi.type.TypeMapper;
 import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.model.TransferOperation;
+
 import org.commonjava.service.promote.config.PromoteConfig;
-import org.commonjava.service.promote.exception.PromotionValidationException;
 import org.commonjava.service.promote.model.StoreKey;
-import org.commonjava.service.promote.validate.ValidationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.MDC;
 
 import javax.inject.Inject;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
 
 import java.util.concurrent.CountDownLatch;
@@ -67,7 +58,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.commonjava.maven.galley.io.ChecksummingTransferDecorator.FORCE_CHECKSUM;
 import static org.commonjava.service.promote.util.Batcher.batch;
 import static org.commonjava.service.promote.util.Batcher.getParalleledBatchSize;
 
@@ -106,8 +96,10 @@ public class PromotionValidationTools
     @Inject
     private TypeMapper typeMapper;
 
+/*
     @Inject
     private TransferManager transferManager;
+*/
 
 /*
     @Inject
@@ -132,7 +124,7 @@ public class PromotionValidationTools
     public PromotionValidationTools( //final ContentManager manager, final StoreDataManager storeDataManager,
                                      final MavenPomReader pomReader, final MavenMetadataReader metadataReader,
                                      final MavenModelProcessor modelProcessor, final TypeMapper typeMapper,
-                                     final TransferManager transferManager,
+                                     //final TransferManager transferManager,
                                      //final ContentDigester contentDigester,
                                      final ThreadPoolExecutor ruleParallelExecutor, final PromoteConfig config )
     {
@@ -142,7 +134,7 @@ public class PromotionValidationTools
         this.metadataReader = metadataReader;
         this.modelProcessor = modelProcessor;
         this.typeMapper = typeMapper;
-        this.transferManager = transferManager;
+        //this.transferManager = transferManager;
         //this.contentDigester = contentDigester;
         this.ruleParallelExecutor = new PoolWeftExecutorService( "promote-validation-rules-executor", ruleParallelExecutor );
         this.promoteConfig = config;

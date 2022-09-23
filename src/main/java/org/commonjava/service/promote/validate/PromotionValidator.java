@@ -22,10 +22,7 @@ import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.cdi.util.weft.WeftExecutorService;
 import org.commonjava.cdi.util.weft.WeftManaged;
 
-import org.commonjava.maven.galley.event.EventMetadata;
-import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.service.promote.config.PromoteConfig;
-import org.commonjava.service.promote.exception.PromotionValidationException;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.PromoteRequest;
 import org.commonjava.service.promote.model.ValidationResult;
@@ -35,9 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
