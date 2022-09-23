@@ -23,10 +23,12 @@ import org.commonjava.service.promote.util.ScriptEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 
+@ApplicationScoped
 public class ValidationRuleParser
 {
     private final String STANDARD_IMPORTS = "import " + this.getClass().getPackageName() + ".*;";

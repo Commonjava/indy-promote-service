@@ -56,9 +56,6 @@ public class PromoteAdminResource
     private ObjectMapper mapper;
 
     @Inject
-    private SecurityManager securityManager;
-
-    @Inject
     private ResponseHelper responseHelper;
 
     @ApiOperation( "Get all rules' names" )

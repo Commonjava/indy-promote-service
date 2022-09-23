@@ -31,6 +31,7 @@
         <weftVersion>1.19</weftVersion>
         <galleyVersion>1.6</galleyVersion>
         <jhttpcVersion>1.12</jhttpcVersion>
+        <atlasVersion>1.1.1</atlasVersion>
     </properties>
 
     <dependencies>
@@ -84,10 +85,17 @@
             <artifactId>swagger-annotations</artifactId>
             <version>1.6.4</version>
         </dependency>
+<!--
         <dependency>
             <groupId>org.commonjava.maven.galley</groupId>
             <artifactId>galley-maven</artifactId>
             <version>${galleyVersion}</version>
+        </dependency>
+-->
+        <dependency>
+            <groupId>org.commonjava.atlas</groupId>
+            <artifactId>atlas-identities</artifactId>
+            <version>${atlasVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.commonjava.cdi.util</groupId>

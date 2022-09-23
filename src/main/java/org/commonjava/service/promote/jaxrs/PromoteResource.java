@@ -60,9 +60,6 @@ public class PromoteResource
     private ObjectMapper mapper;
 
     @Inject
-    private SecurityManager securityManager;
-
-    @Inject
     private ResponseHelper responseHelper;
 
     @ApiOperation( "Promote paths from a source repository into a target repository/group (subject to validation)." )

@@ -32,7 +32,7 @@ quarkus:
 
 promote:
     baseDir: "/deployment/data"
-    callbackUri: ""
+    callbackUri: "callbackUri"
 
 #kafka:
 #    bootstrap:

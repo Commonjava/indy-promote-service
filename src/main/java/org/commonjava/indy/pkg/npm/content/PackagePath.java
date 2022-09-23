@@ -17,7 +17,7 @@ package org.commonjava.indy.pkg.npm.content;
 
 import java.util.Optional;
 
-import static org.commonjava.maven.galley.util.PathUtils.normalize;
+import static org.commonjava.service.promote.util.PathUtils.normalize;
 
 public class PackagePath
 {

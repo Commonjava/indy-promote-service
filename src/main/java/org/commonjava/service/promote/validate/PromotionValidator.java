@@ -30,6 +30,7 @@ import org.commonjava.service.promote.model.ValidationRuleSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ import static org.apache.commons.lang3.StringUtils.join;
 import static org.commonjava.o11yphant.metrics.util.NameUtils.name;
 import static org.commonjava.service.promote.util.PoolUtils.detectOverloadVoid;
 
+@ApplicationScoped
 public class PromotionValidator
 {
     private static final String PROMOTE_REPO_PREFIX = "Promote_";

@@ -29,6 +29,7 @@ import org.commonjava.atlas.maven.ident.util.ArtifactPathInfo;
 import org.commonjava.indy.pkg.npm.content.PackagePath;
 import org.commonjava.indy.pkg.npm.model.PackageMetadata;
 
+/*
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
@@ -41,6 +42,7 @@ import org.commonjava.maven.galley.maven.spi.type.TypeMapper;
 import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
+*/
 
 import org.commonjava.service.promote.config.PromoteConfig;
 import org.commonjava.service.promote.model.StoreKey;
@@ -49,6 +51,7 @@ import org.slf4j.LoggerFactory;
 
 import org.slf4j.MDC;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.*;
 
@@ -61,6 +64,7 @@ import java.util.stream.Stream;
 import static org.commonjava.service.promote.util.Batcher.batch;
 import static org.commonjava.service.promote.util.Batcher.getParalleledBatchSize;
 
+@ApplicationScoped
 public class PromotionValidationTools
 {
     final Logger logger = LoggerFactory.getLogger( this.getClass() );
@@ -82,7 +86,6 @@ public class PromotionValidationTools
 
     @Inject
     private StoreDataManager storeDataManager;
-*/
 
     @Inject
     private MavenPomReader pomReader;
@@ -96,12 +99,9 @@ public class PromotionValidationTools
     @Inject
     private TypeMapper typeMapper;
 
-/*
     @Inject
     private TransferManager transferManager;
-*/
 
-/*
     @Inject
     private ContentDigester contentDigester;
 */
@@ -122,18 +122,18 @@ public class PromotionValidationTools
     }
 
     public PromotionValidationTools( //final ContentManager manager, final StoreDataManager storeDataManager,
-                                     final MavenPomReader pomReader, final MavenMetadataReader metadataReader,
-                                     final MavenModelProcessor modelProcessor, final TypeMapper typeMapper,
+                                     //final MavenPomReader pomReader, final MavenMetadataReader metadataReader,
+                                     //final MavenModelProcessor modelProcessor, final TypeMapper typeMapper,
                                      //final TransferManager transferManager,
                                      //final ContentDigester contentDigester,
                                      final ThreadPoolExecutor ruleParallelExecutor, final PromoteConfig config )
     {
         //contentManager = manager;
         //this.storeDataManager = storeDataManager;
-        this.pomReader = pomReader;
-        this.metadataReader = metadataReader;
-        this.modelProcessor = modelProcessor;
-        this.typeMapper = typeMapper;
+        //this.pomReader = pomReader;
+        //this.metadataReader = metadataReader;
+        //this.modelProcessor = modelProcessor;
+        //this.typeMapper = typeMapper;
         //this.transferManager = transferManager;
         //this.contentDigester = contentDigester;
         this.ruleParallelExecutor = new PoolWeftExecutorService( "promote-validation-rules-executor", ruleParallelExecutor );
@@ -210,6 +210,7 @@ public class PromotionValidationTools
         return verifyStoreKeys.toArray( new StoreKey[0] );
     }
 
+/*
     public String toArtifactPath( final ProjectVersionRef ref )
             throws TransferException
     {
@@ -227,7 +228,6 @@ public class PromotionValidationTools
     {
         return ArtifactPathUtils.formatMetadataPath( groupId, filename );
     }
-/*
 
     public Set<ProjectRelationship<?, ?>> getRelationshipsForPom( final String path, final ModelProcessorConfig config,
                                                                   final ValidationRequest request,
@@ -303,6 +303,7 @@ public class PromotionValidationTools
     }
 */
 
+/*
     public MavenPomView readLocalPom( final String path, final ValidationRequest request )
             throws Exception
     {
@@ -311,13 +312,13 @@ public class PromotionValidationTools
         {
             throw new Exception( String.format("Invalid artifact path: %s. Could not parse ArtifactRef from path.", path) );
         }
-/*
         Transfer transfer = retrieve( request.getSource(), path );
         return pomReader.readLocalPom( artifactRef.asProjectVersionRef(), transfer, MavenPomView.ALL_PROFILES );
-*/
+
         // TODO: Will re-implement it by micro service API
         return null;
     }
+*/
 
     public PackageMetadata readLocalPackageJson(final String path, final ValidationRequest request )
             throws Exception
@@ -361,6 +362,7 @@ public class PromotionValidationTools
     {
         return PackagePath.parse( tarPath );
     }
+/*
 
     public MavenMetadataView getMetadata( final ProjectRef ref, final List<? extends Location> locations )
             throws GalleyMavenException
@@ -457,6 +459,7 @@ public class PromotionValidationTools
     {
         return pomReader.read( ref, pom, locations, eventMetadata, activeProfileLocations );
     }
+*/
 /*
     public Transfer getTransfer( final List<ArtifactStore> stores, final String path )
             throws Exception
