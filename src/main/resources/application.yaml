@@ -30,7 +30,9 @@ quarkus:
     swagger-ui:
         always-include: true
 
-#promote:
+promote:
+    baseDir: "/deployment/data"
+    callbackUri: "callbackUri"
 
 #kafka:
 #    bootstrap:

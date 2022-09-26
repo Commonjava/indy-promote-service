@@ -28,6 +28,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <toolchains-plugin.version>3.0.0</toolchains-plugin.version>
+        <weftVersion>1.19</weftVersion>
+        <galleyVersion>1.6</galleyVersion>
+        <jhttpcVersion>1.12</jhttpcVersion>
+        <atlasVersion>1.1.1</atlasVersion>
     </properties>
 
     <dependencies>
@@ -80,6 +84,28 @@
             <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>
             <version>1.6.4</version>
+        </dependency>
+<!--
+        <dependency>
+            <groupId>org.commonjava.maven.galley</groupId>
+            <artifactId>galley-maven</artifactId>
+            <version>${galleyVersion}</version>
+        </dependency>
+-->
+        <dependency>
+            <groupId>org.commonjava.atlas</groupId>
+            <artifactId>atlas-identities</artifactId>
+            <version>${atlasVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.commonjava.cdi.util</groupId>
+            <artifactId>weft</artifactId>
+            <version>${weftVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>2.2.1</version>
         </dependency>
 
         <!-- for unit test -->
