@@ -5,7 +5,7 @@ import org.commonjava.service.promote.util.PackageTypeConstants
 import org.commonjava.service.promote.validate.PromotionValidationException
 import org.commonjava.service.promote.validate.ValidationRequest
 import org.commonjava.service.promote.validate.ValidationRule
-import org.commonjava.maven.galley.io.checksum.ContentDigest
+import org.commonjava.service.promote.util.ContentDigest
 
 class NoPreExistingPaths implements ValidationRule {
 

@@ -3,7 +3,6 @@ package rules
 import org.apache.commons.lang.StringUtils
 import org.commonjava.service.promote.validate.ValidationRequest
 import org.commonjava.service.promote.validate.ValidationRule
-import org.commonjava.maven.galley.maven.rel.ModelProcessorConfig
 
 class NoSnapshots implements ValidationRule {
 

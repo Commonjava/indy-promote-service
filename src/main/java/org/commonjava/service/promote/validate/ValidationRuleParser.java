@@ -27,6 +27,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+
+import static java.nio.charset.Charset.defaultCharset;
 
 @ApplicationScoped
 public class ValidationRuleParser
@@ -52,17 +55,17 @@ public class ValidationRuleParser
     }
 
     public ValidationRuleMapping parseRule( final File script )
-            throws PromotionValidationException
+            throws Exception
     {
         String spec = null;
         try
         {
-            spec = FileUtils.readFileToString( script );
+            spec = FileUtils.readFileToString( script, defaultCharset() );
         }
         catch ( final IOException e )
         {
-            logger.error( String.format( "[PROMOTE] Cannot load validation rule from: %s. Reason: %s", script,
-                                         e.getMessage() ), e );
+            logger.error( String.format( "Cannot load validation rule from: %s. Reason: %s", script, e.getMessage() ), e );
+            throw e;
         }
 
         if ( !spec.contains( "import " ) && !spec.contains( "package " ) )
@@ -81,10 +84,9 @@ public class ValidationRuleParser
             return null;
         }
 
-        Logger logger = LoggerFactory.getLogger( getClass() );
-        logger.debug( "Parsing rule from: {} with content:\n{}\n", scriptName, spec );
+        logger.trace( "Parsing rule: {}, content:\n{}", scriptName, spec );
 
-        ValidationRule rule = null;
+        ValidationRule rule;
         try
         {
 
@@ -94,7 +96,7 @@ public class ValidationRuleParser
         catch ( final Exception e )
         {
             throw new PromotionValidationException(
-                    "[PROMOTE] Cannot load validation rule from: {} as an instance of: {}. Reason: {}", e, scriptName,
+                    "Cannot load validation rule from: {} as an instance of: {}. Reason: {}", e, scriptName,
                     ValidationRule.class.getSimpleName(), e.getMessage() );
         }
 
@@ -112,18 +114,18 @@ public class ValidationRuleParser
         String spec = null;
         try
         {
-            spec = FileUtils.readFileToString( script );
+            spec = FileUtils.readFileToString( script, defaultCharset() );
         }
         catch ( final IOException e )
         {
-            logger.error( String.format( "[PROMOTE] Cannot load validation rule-set from: %s. Reason: %s", script,
+            logger.error( String.format( "Cannot load validation rule-set from: %s. Reason: %s", script,
                                          e.getMessage() ), e );
         }
 
         return parseRuleSet( spec, script.getName() );
     }
 
-    public ValidationRuleSet parseRuleSet( final String spec, final String scriptName )
+    private ValidationRuleSet parseRuleSet( final String spec, final String scriptName )
             throws PromotionValidationException
     {
         if ( spec == null )
@@ -144,7 +146,7 @@ public class ValidationRuleParser
         catch ( final IOException e )
         {
             throw new PromotionValidationException(
-                    "[PROMOTE] Cannot load validation rule-set from: {} as an instance of: {}. Reason: {}", e,
+                    "Cannot load validation rule-set from: {} as an instance of: {}. Reason: {}", e,
                     scriptName, ValidationRule.class.getSimpleName(), e.getMessage() );
         }
     }
