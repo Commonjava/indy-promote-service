@@ -48,9 +48,8 @@ public class ScriptEngine
     public <T> T parseScriptInstance( final String script, final Class<T> type, boolean processCdiInjections )
             throws Exception
     {
-        Object instance = null;
         final Class<?> clazz = groovyClassloader.parseClass( script );
-        instance = clazz.newInstance();
+        Object instance = clazz.newInstance();
 
         Logger logger = LoggerFactory.getLogger( getClass() );
         logger.info( "Parsed: {} (type: {}, interfaces: {})", instance, instance.getClass(),

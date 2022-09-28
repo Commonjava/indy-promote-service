@@ -1,0 +1,7 @@
+{
+  "name": "maven-test-builds",
+  "storeKeyPattern": "maven:[^:]+:test-builds",
+  "ruleNames": [
+    "no-pre-existing-paths.groovy"
+  ]
+}

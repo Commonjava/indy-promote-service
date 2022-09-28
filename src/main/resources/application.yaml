@@ -31,7 +31,7 @@ quarkus:
         always-include: true
 
 promote:
-    baseDir: "/deployment/data"
+    baseDir: "data"
     callbackUri: "callbackUri"
 
 #kafka:

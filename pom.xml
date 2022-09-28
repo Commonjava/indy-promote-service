@@ -29,7 +29,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <toolchains-plugin.version>3.0.0</toolchains-plugin.version>
         <weftVersion>1.19</weftVersion>
-        <galleyVersion>1.6</galleyVersion>
         <jhttpcVersion>1.12</jhttpcVersion>
         <atlasVersion>1.1.1</atlasVersion>
     </properties>
@@ -85,13 +84,6 @@
             <artifactId>swagger-annotations</artifactId>
             <version>1.6.4</version>
         </dependency>
-<!--
-        <dependency>
-            <groupId>org.commonjava.maven.galley</groupId>
-            <artifactId>galley-maven</artifactId>
-            <version>${galleyVersion}</version>
-        </dependency>
--->
         <dependency>
             <groupId>org.commonjava.atlas</groupId>
             <artifactId>atlas-identities</artifactId>
@@ -193,6 +185,32 @@
                         </jdk>
                     </toolchains>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-rules</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/data</outputDirectory>
+                            <includeEmptyDirs>true</includeEmptyDirs>
+                            <resources>
+                                <resource>
+                                    <directory>data</directory>
+                                    <includes>
+                                        <include>**/*</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
