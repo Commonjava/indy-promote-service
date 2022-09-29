@@ -54,10 +54,10 @@ public class PromotionValidator
     private static final String PROMOTION_VALIDATION_RULE_SET = "promotion-validation-rule-set";
 
     @Inject
-    private PromoteValidationsManager validationsManager;
+    PromoteValidationsManager validationsManager;
 
     @Inject
-    private PromotionValidationTools validationTools;
+    PromotionValidationTools validationTools;
 
 /*
     @Inject
@@ -68,12 +68,12 @@ public class PromotionValidator
 */
 
     @Inject
-    private PromoteConfig config;
+    PromoteConfig config;
 
     @Inject
     @WeftManaged
     @ExecutorConfig( named = "promote-validation-rules-runner", threads = 20, priority = 5, loadSensitive = ExecutorConfig.BooleanLiteral.TRUE, maxLoadFactor = 400 )
-    private WeftExecutorService validateService;
+    WeftExecutorService validateService;
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -106,7 +106,7 @@ public class PromotionValidator
     {
         ValidationResult result = new ValidationResult();
 
-        ValidationRuleSet set = validationsManager.getRuleSetMatching( request.getTargetKey() );
+        ValidationRuleSet set = validationsManager.getRuleSetMatching( request.getTarget() );
 /*
 
         ArtifactStore source;
@@ -133,7 +133,7 @@ public class PromotionValidator
             if ( ruleNames != null && !ruleNames.isEmpty() )
             {
 //                final ArtifactStore store = getRequestStore( request, baseUrl );
-                final ValidationRequest req = new ValidationRequest( request, set );
+                final ValidationRequest req = new ValidationRequest( request, set, validationTools );
                 try
                 {
                     DrainingExecutorCompletionService<Exception> svc =
@@ -219,13 +219,13 @@ public class PromotionValidator
             }
             else
             {
-                logger.info( "No validation rules are defined for: {}", request.getTargetKey() );
+                logger.info( "No validation rules are defined for: {}", request.getTarget() );
                 return result;
             }
         }
         else
         {
-            logger.info( "No validation rule-sets are defined for: {}", request.getTargetKey() );
+            logger.info( "No validation rule-sets are defined for: {}", request.getTarget() );
             return result;
         }
     }
@@ -297,7 +297,7 @@ public class PromotionValidator
         }
     }
 /*
- * TODO: Figure out why this is needed.
+ * TODO: Figure out why creating temp remote repo is needed.
  *
     private ArtifactStore getRequestStore( PromoteRequest promoteRequest, String baseUrl )
             throws PromotionValidationException

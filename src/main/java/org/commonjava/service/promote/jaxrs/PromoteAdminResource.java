@@ -50,13 +50,13 @@ public class PromoteAdminResource
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
-    private PromoteValidationsManager validationsManager;
+    PromoteValidationsManager validationsManager;
 
     @Inject
-    private ObjectMapper mapper;
+    ObjectMapper mapper;
 
     @Inject
-    private ResponseHelper responseHelper;
+    ResponseHelper responseHelper;
 
     @ApiOperation( "Get all rules' names" )
     @ApiResponses( { @ApiResponse( code = 200, response = Response.class,

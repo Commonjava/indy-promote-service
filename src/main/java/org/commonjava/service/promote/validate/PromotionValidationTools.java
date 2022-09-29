@@ -107,15 +107,15 @@ public class PromotionValidationTools
 */
 
     @Inject
-    private PromoteConfig promoteConfig;
+    PromoteConfig promoteConfig;
 
     @Inject
-    private ObjectMapper objectMapper;
+    ObjectMapper objectMapper;
 
     @Inject
     @WeftManaged
     @ExecutorConfig( named = "promote-validation-rules-executor", threads = 8 )
-    private WeftExecutorService ruleParallelExecutor;
+    WeftExecutorService ruleParallelExecutor;
 
     protected PromotionValidationTools()
     {
@@ -315,7 +315,7 @@ public class PromotionValidationTools
         Transfer transfer = retrieve( request.getSource(), path );
         return pomReader.readLocalPom( artifactRef.asProjectVersionRef(), transfer, MavenPomView.ALL_PROFILES );
 
-        // TODO: Will re-implement it by micro service API
+        // TODO: re-implement 'readLocalPom' by micro service API
         return null;
     }
 */
@@ -323,7 +323,7 @@ public class PromotionValidationTools
     public PackageMetadata readLocalPackageJson(final String path, final ValidationRequest request )
             throws Exception
     {
-        // TODO: Will re-implement it by micro service API
+        // TODO: re-implement 'readLocalPackageJson' by micro service API
         return null;
 /*
         Transfer transfer = retrieve( request.getSource(), path );
@@ -459,8 +459,7 @@ public class PromotionValidationTools
     {
         return pomReader.read( ref, pom, locations, eventMetadata, activeProfileLocations );
     }
-*/
-/*
+
     public Transfer getTransfer( final List<ArtifactStore> stores, final String path )
             throws Exception
     {
@@ -525,7 +524,7 @@ public class PromotionValidationTools
     public boolean exists( final StoreKey storeKey, final String path )
             throws Exception
     {
-        // TODO: will re-implement via micro service call
+        // TODO: re-implement 'exists' by micro service API
         return false;
 /*
         ArtifactStore store = getArtifactStore( storeKey );

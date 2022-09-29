@@ -27,7 +27,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 
 import static java.nio.charset.Charset.defaultCharset;
 
@@ -39,10 +38,10 @@ public class ValidationRuleParser
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
-    private ScriptEngine scriptEngine;
+    ScriptEngine scriptEngine;
 
     @Inject
-    private ObjectMapper objectMapper;
+    ObjectMapper objectMapper;
 
     protected ValidationRuleParser()
     {

@@ -83,7 +83,7 @@ public class PromotionCallbackHelper
     }
 
     @PostConstruct
-    private void init()
+    void init()
     {
 /*
         this.siteConfig = new SiteConfigBuilder().withRequestTimeoutSeconds( 30 ).withUri( config.callbackUri() ).build();

@@ -26,7 +26,7 @@ public class ResponseHelper
     private final static Logger LOGGER = LoggerFactory.getLogger( ResponseHelper.class );
 
     @Inject
-    private ObjectMapper mapper;
+    ObjectMapper mapper;
 
     //TODO: will think about metrics later
     //    @Inject

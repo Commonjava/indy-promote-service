@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.service.promote.util;
+package org.commonjava.service.promote.model;
 
 import org.commonjava.service.promote.model.StoreKey;
+import org.commonjava.service.promote.util.PackageTypes;
 
 /**
  * Represents different types of package content (eg. maven, NPM, etc.). This is part of the data represented by

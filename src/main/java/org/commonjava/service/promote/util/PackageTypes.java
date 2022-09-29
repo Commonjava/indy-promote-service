@@ -15,6 +15,8 @@
  */
 package org.commonjava.service.promote.util;
 
+import org.commonjava.service.promote.model.PackageTypeDescriptor;
+
 import java.util.*;
 
 import static java.util.Collections.unmodifiableMap;

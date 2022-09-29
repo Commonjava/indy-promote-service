@@ -33,11 +33,14 @@ public class ValidationRequest
 
     private static final String SCOPED_VERSION_PATTERN = "scopedVersionPattern";
 
-    public ValidationRequest( PromoteRequest promoteRequest, ValidationRuleSet ruleSet )
+    private final PromotionValidationTools tools;
+
+    public ValidationRequest( PromoteRequest promoteRequest, ValidationRuleSet ruleSet, PromotionValidationTools tools )
     {
         this.promoteRequest = promoteRequest;
         this.ruleSet = ruleSet;
         this.sourceRepository = promoteRequest.getSource();
+        this.tools = tools;
     }
 
     public PromoteRequest getPromoteRequest()
@@ -82,7 +85,10 @@ public class ValidationRequest
 
     public StoreKey getTarget()
     {
-        return promoteRequest.getTargetKey();
+        return promoteRequest.getTarget();
     }
 
+    public PromotionValidationTools getTools() {
+        return tools;
+    }
 }

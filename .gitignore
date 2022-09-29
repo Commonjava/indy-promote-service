@@ -1,5 +1,6 @@
 # Build
 target
+log
 
 # Compiled class file
 *.class
