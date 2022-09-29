@@ -38,36 +38,38 @@ import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 
+import static java.nio.charset.Charset.defaultCharset;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.commonjava.service.promote.util.JaxRsUriFormatter.getBaseUrlByStoreKey;
 
 @Tag( name = "Content Promotion", description = "Promote content from a source repository to a target repository." )
 @Path( "/api/promotion" )
+@Produces( APPLICATION_JSON )
 @ApplicationScoped
 public class PromoteResource
 {
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
-    private PromotionManager manager;
+    PromotionManager manager;
 
     @Inject
-    private ObjectMapper mapper;
+    ObjectMapper mapper;
 
     @Inject
-    private ResponseHelper responseHelper;
+    ResponseHelper responseHelper;
 
     @ApiOperation( "Promote paths from a source repository into a target repository/group (subject to validation)." )
     @ApiResponse( code=200, message = "Promotion operation finished (consult response content for success/failure).", response= PathsPromoteResult.class )
     @ApiImplicitParam( name = "body", paramType = "body",
                        value = "JSON request specifying source and target, with other configuration options",
-                       allowMultiple = false, required = true,
-                       dataType = "PathsPromoteRequest" )
+                       required = true )
     @Path( "/paths/promote" )
     @POST
     @Consumes( APPLICATION_JSON )
@@ -77,7 +79,7 @@ public class PromoteResource
         Response response;
         try
         {
-            final String json = IOUtils.toString( request.getInputStream() );
+            final String json = IOUtils.toString( request.getInputStream(), defaultCharset() );
             logger.info( "Got promotion request:\n{}", json );
             req = mapper.readValue( json, PathsPromoteRequest.class );
         }

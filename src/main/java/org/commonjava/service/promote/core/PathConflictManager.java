@@ -31,7 +31,8 @@ import static java.util.Collections.disjoint;
 
 /**
  * This class is used to check whether the are more than one promotion requests promoting some paths to same target repo.
- * TODO: It will not work as expected when we move to Promotion service cluster, as different nodes can not sync up
+ *
+ * TODO: conflict manager will not work as expected when moved to promotion service, as different nodes cannot sync
  * with each other. We may need a third party service to hold the 'inUseMap'. This again needs a locking mechanism that
  * were designed for a cluster environment.
  *

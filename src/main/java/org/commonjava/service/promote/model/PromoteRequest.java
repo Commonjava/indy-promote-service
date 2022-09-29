@@ -26,7 +26,7 @@ public interface PromoteRequest
 
     PromoteRequest setSource( StoreKey source );
 
-    StoreKey getTargetKey();
+    StoreKey getTarget();
 
     boolean isDryRun();
 

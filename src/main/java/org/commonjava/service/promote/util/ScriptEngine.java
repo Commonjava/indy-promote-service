@@ -59,9 +59,9 @@ public class ScriptEngine
         return processCdiInjections ? inject( result ) : result ;
     }
 
-    // TODO: scripts that can use CDI injection will need to use this method to inject their fields.
+    // Scripts that can use CDI injection will need to use this method to inject their fields.
     @Inject
-    private BeanManager beanManager;
+    BeanManager beanManager;
 
     private <T> T inject( T bean )
     {

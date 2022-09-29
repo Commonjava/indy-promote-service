@@ -26,7 +26,7 @@ import java.nio.file.Paths;
 public class PromoteDataFileManager
 {
     @Inject
-    private PromoteConfig config;
+    PromoteConfig config;
 
     public PromoteDataFileManager()
     {

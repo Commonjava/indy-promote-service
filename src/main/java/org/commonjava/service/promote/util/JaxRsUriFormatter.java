@@ -15,6 +15,7 @@
  */
 package org.commonjava.service.promote.util;
 
+import org.commonjava.service.promote.model.PackageTypeDescriptor;
 import org.commonjava.service.promote.model.StoreKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

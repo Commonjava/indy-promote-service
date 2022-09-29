@@ -91,11 +91,6 @@ public class PathsPromoteRequest
     }
 
     @Override
-    public StoreKey getTargetKey()
-    {
-        return getTarget();
-    }
-
     public StoreKey getTarget()
     {
         return target;

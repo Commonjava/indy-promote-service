@@ -56,35 +56,35 @@ public class PromotionManager
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
-    private PromoteConfig config;
+    PromoteConfig config;
 
     @Inject
-    private PromotionValidator validator;
+    PromotionValidator validator;
 
     @Inject
-    private PathConflictManager conflictManager;
+    PathConflictManager conflictManager;
 
     @WeftManaged
     @Inject
     @ExecutorConfig( named = "promotion", threads = 8, priority = 8, loadSensitive = ExecutorConfig.BooleanLiteral.TRUE )
-    private WeftExecutorService asyncPromotionService;
+    WeftExecutorService promotionService;
 
     @Inject
-    private PromotionCallbackHelper callbackHelper;
+    PromotionCallbackHelper callbackHelper;
 
     @Inject
-    private PromotionHelper promotionHelper;
+    PromotionHelper promotionHelper;
 
     protected PromotionManager()
     {
     }
 
     public PromotionManager( PromotionValidator validator,
-                             PromoteConfig config, WeftExecutorService asyncPromotionService )
+                             PromoteConfig config, WeftExecutorService promotionService )
     {
         this.validator = validator;
         this.config = config;
-        this.asyncPromotionService = asyncPromotionService;
+        this.promotionService = promotionService;
         this.promotionHelper = new PromotionHelper();
         this.conflictManager = new PathConflictManager();
     }
@@ -123,7 +123,7 @@ public class PromotionManager
             }
             catch ( Exception e )
             {
-                logger.error( "Path promotion failed: " + request.getSource() + " -> " + request.getTargetKey(), e );
+                logger.error( "Path promotion failed: " + request.getSource() + " -> " + request.getTarget(), e );
                 throw new PromotionException( "Execution of path promotion failed.", e );
             }
         }
@@ -131,7 +131,7 @@ public class PromotionManager
 
     private Future<PathsPromoteResult> submitPathsPromoteRequest( PathsPromoteRequest request, final String baseUrl )
     {
-        return detectOverload( () -> asyncPromotionService.submit( () -> {
+        return detectOverload( () -> promotionService.submit( () -> {
             PathsPromoteResult ret;
             try
             {
@@ -191,7 +191,7 @@ public class PromotionManager
 
     private Future<PathsPromoteResult> submitRollbackPathsPromote( PathsPromoteResult result )
     {
-        return detectOverload( () -> asyncPromotionService.submit( () -> {
+        return detectOverload( () -> promotionService.submit( () -> {
             if ( result.getCompletedPaths().isEmpty() )
             {
                 // clear errors so client don't misunderstand rollback result
@@ -256,7 +256,7 @@ public class PromotionManager
         if ( paths == null || paths.isEmpty() )
         {
 
- * TODO: this is not used as far as I know. I would like to defer or deprecate it.
+ * TODO: listing source repo for paths is not used as far as I know. I would like to defer or deprecate it.
  * If users were to specify a source repo with no paths in the request, we need to query Storage service to list all files.
  *
             // This is used to let galley ignore the NPMPathStorageCalculator handling,
@@ -279,7 +279,7 @@ public class PromotionManager
         }
 
         AtomicReference<Exception> ex = new AtomicReference<>();
-        StoreKeyPaths plk = new StoreKeyPaths( request.getTargetKey(), pending );
+        StoreKeyPaths plk = new StoreKeyPaths( request.getTarget(), pending );
 
         final PathsPromoteResult promoteResult;
         if ( request.isFailWhenExists() )
@@ -329,7 +329,7 @@ public class PromotionManager
             }
         }
 
-        if ( validationResult != null && validationResult.isValid() )
+        if ( validationResult == null || validationResult.isValid() )
         {
             if ( request.isDryRun() )
             {
@@ -447,7 +447,7 @@ public class PromotionManager
         {
             result = new PathsPromoteResult( request, emptySet(), completed, skipped, null, validation );
 /*
- * TODO: We would like to dump this part. On promote service, we have no NFC cache involved.
+ * TODO: dump this NFC clean up. On promote service, we have no NFC cache involved.
  * Instead, we should fire event via Kafka telling that some NFC entries and maven matedata files should be expired,
  * as consequences of the promotion.
 
@@ -475,7 +475,7 @@ public class PromotionManager
 
     private Set<PathTransferResult> copy(StoreKey source, StoreKey target, Set<String> paths) {
         // TODO: copy paths from source to target via pathmap storage service API
-        return null;
+        return emptySet();
     }
 
 /*

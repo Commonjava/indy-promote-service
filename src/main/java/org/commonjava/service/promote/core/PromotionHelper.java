@@ -23,9 +23,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import static java.util.Collections.emptyList;
 
 
 @ApplicationScoped
@@ -44,7 +47,7 @@ public class PromotionHelper
 
     public List<String> deleteViaStorageService(Set<String> completed, StoreKey target) {
         // TODO: delete completed paths from target to revert the promotion
-        return null;
+        return emptyList();
     }
 
     static class PromotionRepoRetrievalResult
@@ -105,7 +108,7 @@ public class PromotionHelper
 
     private StoreKey getArtifactStoreViaService(StoreKey storeKey) {
         // TODO: get artifact store via micro service (mainly to check if exists)
-        return null;
+        return storeKey;
     }
 
     public static long timeInSeconds( long begin )

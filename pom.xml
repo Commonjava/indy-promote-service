@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.commonjava</groupId>
         <artifactId>service-parent</artifactId>
-        <version>1</version>
+        <version>2</version>
     </parent>
 
     <groupId>org.commonjava.indy.service</groupId>
@@ -28,10 +28,28 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <toolchains-plugin.version>3.0.0</toolchains-plugin.version>
+<!--
+        <quarkus.platform.artifact-id>quarkus-universe-bom</quarkus.platform.artifact-id>
+        <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
+        <quarkus.platform.version>2.3.0.Final</quarkus.platform.version>
+-->
         <weftVersion>1.19</weftVersion>
         <jhttpcVersion>1.12</jhttpcVersion>
         <atlasVersion>1.1.1</atlasVersion>
     </properties>
+<!--
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${quarkus.platform.group-id}</groupId>
+                <artifactId>${quarkus.platform.artifact-id}</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+-->
 
     <dependencies>
         <dependency>
@@ -75,6 +93,7 @@
             <artifactId>quarkus-smallrye-reactive-messaging-kafka</artifactId>
         </dependency>
 
+        <!-- non quarkus dependencies -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
@@ -94,10 +113,17 @@
             <artifactId>weft</artifactId>
             <version>${weftVersion}</version>
         </dependency>
+        <!--<dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>3.0.9</version>
+        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/org.codehaus.groovy/groovy-all -->
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
-            <version>2.2.1</version>
+            <version>3.0.9</version>
+            <type>pom</type>
         </dependency>
 
         <!-- for unit test -->
@@ -121,7 +147,12 @@
             <artifactId>smallrye-reactive-messaging-in-memory</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>2.27.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
