@@ -15,11 +15,15 @@
  */
 package org.commonjava.service.promote.validate;
 
+import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.PromoteRequest;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.ValidationRuleSet;
 
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class ValidationRequest
 {
@@ -28,6 +32,9 @@ public class ValidationRequest
     private final ValidationRuleSet ruleSet;
 
     private final StoreKey sourceRepository;
+
+    private static final Predicate<String> DEFAULT_FILTER =
+            getMetadataPredicate().negate().and( getChecksumPredicate().negate() );
 
     private static final String VERSION_PATTERN = "versionPattern";
 
@@ -41,6 +48,29 @@ public class ValidationRequest
         this.ruleSet = ruleSet;
         this.sourceRepository = promoteRequest.getSource();
         this.tools = tools;
+    }
+
+    public Set<String> getSourcePaths()
+    {
+        return getSourcePaths( false, false, DEFAULT_FILTER );
+    }
+
+    public Set<String> getSourcePaths( boolean includeMetadata, boolean includeChecksums )
+    {
+        Predicate<String> metadata = asPredicate( includeMetadata ).or( getMetadataPredicate().negate() );
+        Predicate<String> checksums = asPredicate( includeChecksums ).or( getChecksumPredicate().negate() );
+        return getSourcePaths( includeMetadata, includeChecksums ,metadata.and( checksums ) );
+    }
+
+    private Set<String> getSourcePaths( boolean includeMetadata,
+                                        boolean includeChecksums , Predicate<String> filter )
+    {
+        PathsPromoteRequest promoteRequest = (PathsPromoteRequest)getPromoteRequest();
+        if ( !includeMetadata || !includeChecksums )
+        {
+            return promoteRequest.getPaths().stream().filter( filter ).collect( Collectors.toSet() );
+        }
+        return promoteRequest.getPaths();
     }
 
     public PromoteRequest getPromoteRequest()
@@ -86,6 +116,18 @@ public class ValidationRequest
     public StoreKey getTarget()
     {
         return promoteRequest.getTarget();
+    }
+
+    private Predicate<String> asPredicate( boolean value ) {
+        return ( path ) -> value;
+    }
+
+    private static Predicate<String> getMetadataPredicate () {
+        return Pattern.compile( ".+/maven-metadata\\.xml(\\.(md5|sha[0-9]+))?" ).asPredicate();
+    }
+
+    private static Predicate<String> getChecksumPredicate () {
+        return Pattern.compile( ".+\\.(md5|sha[0-9]+)" ).asPredicate();
     }
 
     public PromotionValidationTools getTools() {

@@ -15,8 +15,6 @@
  */
 package org.commonjava.service.promote.model;
 
-//import org.commonjava.indy.model.core.StoreKey;
-
 /**
  * Created by jdcasey on 9/11/15.
  */
