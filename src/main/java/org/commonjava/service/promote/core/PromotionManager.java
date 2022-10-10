@@ -492,16 +492,28 @@ public class PromotionManager
         fileCopyRequest.setTargetFilesystem( promoteRequest.getTarget().toString() );
         fileCopyRequest.setPaths( promoteRequest.getPaths() );
 
-        FileCopyResult fileCopyResult = storageService.copy(fileCopyRequest);
+        //FileCopyResult fileCopyResult
+        Response resp = storageService.copy(fileCopyRequest);
+        if ( Response.Status.fromStatusCode( resp.getStatus() ).getFamily()
+                != Response.Status.Family.SUCCESSFUL  )
+        {
+            return errResults( "Copy failed, resp status: " + resp.getStatus() );
+        }
 
+        FileCopyResult fileCopyResult = resp.readEntity(FileCopyResult.class);
         if ( fileCopyResult.isSuccess() )
         {
             return promoteRequest.getPaths().stream().map(PathTransferResult::new).collect( toSet() );
         }
 
         // Otherwise, return error message
+        return errResults( "Copy failed: " + fileCopyResult.getMessage() );
+    }
+
+    private Set<PathTransferResult> errResults(String errors)
+    {
         PathTransferResult errResult = new PathTransferResult();
-        errResult.error = "Copy failed: " + fileCopyResult.getMessage();
+        errResult.error = errors;
         Set<PathTransferResult> errResults = new HashSet<>( 1 );
         errResults.add( errResult );
         return errResults;

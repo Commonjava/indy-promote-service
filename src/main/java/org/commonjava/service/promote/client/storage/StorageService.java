@@ -18,5 +18,5 @@ public interface StorageService
 
     @POST
     @Path( "copy" )
-    FileCopyResult copy( final FileCopyRequest request );
+    Response copy( final FileCopyRequest request );
 }
