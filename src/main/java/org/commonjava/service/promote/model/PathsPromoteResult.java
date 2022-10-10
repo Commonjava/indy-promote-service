@@ -21,11 +21,8 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Contains the result of a promotion attempt. If the promotion is a success, the pending paths and error will be <b>null</b>. Otherwise, these are
- * populated to support the resume feature (for transient or correctable errors).
- * 
- * @author jdcasey
- *
+ * Result of a promotion attempt. If success, the pending paths and error will be <b>null</b>.
+ * Otherwise, these are populated to support the resume feature.
  */
 public class PathsPromoteResult extends AbstractPromoteResult<PathsPromoteResult>
 {
@@ -116,10 +113,15 @@ public class PathsPromoteResult extends AbstractPromoteResult<PathsPromoteResult
     }
 
     @Override
-    public String toString()
-    {
-        return String.format( "PathsPromoteResult [\n  request=%s\n  pendingPaths=%s\n  completedPaths=%s\n  skippedPaths=%s\n  error=%s\n  validations:\n  %s\n]",
-                              request, pendingPaths, completedPaths, skippedPaths, error, validations );
+    public String toString() {
+        return "PathsPromoteResult{" +
+                "resultCode='" + resultCode + '\'' +
+                ", validations=" + validations +
+                ", error='" + error + '\'' +
+                ", request=" + request +
+                ", pendingPaths=" + pendingPaths +
+                ", completedPaths=" + completedPaths +
+                ", skippedPaths=" + skippedPaths +
+                '}';
     }
-
 }

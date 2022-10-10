@@ -11,8 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
