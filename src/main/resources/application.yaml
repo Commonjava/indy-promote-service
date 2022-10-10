@@ -34,6 +34,11 @@ promote:
     baseDir: "data"
     callbackUri: "callbackUri"
 
+storage-service-api:
+    mp-rest:
+        url: http://localhost
+        scope: javax.inject.Singleton
+
 #kafka:
 #    bootstrap:
 #        servers: "localhost:9092"

@@ -21,7 +21,9 @@ class PathTransferResult
 
     boolean skipped;
 
-    final String path;
+    String path;
+
+    public PathTransferResult() {}
 
     public PathTransferResult( final String path )
     {

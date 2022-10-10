@@ -19,11 +19,7 @@ import java.util.Set;
 import static io.restassured.RestAssured.given;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.commonjava.service.promote.fixture.TestResources.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.Matchers.anyOf;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTestResource( TestResources.class )
 @QuarkusTest
@@ -52,8 +48,11 @@ public class PromoteResourceTest
         String content = response.getBody().asString();
         //System.out.println(">>>\n" + content);
         PathsPromoteResult result = mapper.readValue( content, PathsPromoteResult.class );
-
         assertNotNull( result );
+        assertNull( result.getError() );
+        assertTrue( result.getCompletedPaths().containsAll(paths) );
+        assertTrue( result.getSkippedPaths().isEmpty() );
+        assertTrue( result.getPendingPaths().isEmpty() );
     }
 
 }
