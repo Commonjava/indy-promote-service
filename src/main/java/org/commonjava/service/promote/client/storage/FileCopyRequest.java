@@ -46,4 +46,14 @@ public class FileCopyRequest
     public void setTargetFilesystem(String targetFilesystem) {
         this.targetFilesystem = targetFilesystem;
     }
+
+    @Override
+    public String toString() {
+        return "FileCopyRequest{" +
+                "paths=" + paths +
+                ", failWhenExists=" + failWhenExists +
+                ", sourceFilesystem='" + sourceFilesystem + '\'' +
+                ", targetFilesystem='" + targetFilesystem + '\'' +
+                '}';
+    }
 }
