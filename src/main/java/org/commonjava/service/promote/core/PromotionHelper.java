@@ -107,7 +107,7 @@ public class PromotionHelper
     }
 
     private StoreKey getArtifactStoreViaService(StoreKey storeKey) {
-        // TODO: get artifact store via micro service (mainly to check if exists)
+        // TODO: get artifact store via micro service (mainly to check if exists). Can we skip this?
         return storeKey;
     }
 

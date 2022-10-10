@@ -19,6 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.commonjava.cdi.util.weft.*;
 
 import org.commonjava.service.promote.callback.PromotionCallbackHelper;
+import org.commonjava.service.promote.client.storage.FileCopyResult;
+import org.commonjava.service.promote.client.storage.StorageService;
 import org.commonjava.service.promote.config.PromoteConfig;
 import org.commonjava.service.promote.exception.PromotionException;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
@@ -27,18 +29,23 @@ import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.ValidationResult;
 
 import org.commonjava.service.promote.validate.PromotionValidator;
+import org.commonjava.service.promote.client.storage.FileCopyRequest;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 import java.util.*;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 
 import static org.commonjava.service.promote.core.PromotionHelper.*;
@@ -74,6 +81,10 @@ public class PromotionManager
 
     @Inject
     PromotionHelper promotionHelper;
+
+    @Inject
+    @RestClient
+    private StorageService storageService;
 
     protected PromotionManager()
     {
@@ -414,7 +425,7 @@ public class PromotionManager
         }
 */
 
-        final Set<PathTransferResult> results = copy( request.getSource(), request.getTarget(), request.getPaths() );
+        final Set<PathTransferResult> results = copy( request );
 
         final List<String> errors = new ArrayList<>();
         final Set<String> completed = new HashSet<>();
@@ -473,9 +484,27 @@ public class PromotionManager
         return result;
     }
 
-    private Set<PathTransferResult> copy(StoreKey source, StoreKey target, Set<String> paths) {
-        // TODO: copy paths from source to target via pathmap storage service API
-        return emptySet();
+    private Set<PathTransferResult> copy(PathsPromoteRequest promoteRequest)
+    {
+        FileCopyRequest fileCopyRequest = new FileCopyRequest();
+        fileCopyRequest.setFailWhenExists( promoteRequest.isFailWhenExists() );
+        fileCopyRequest.setSourceFilesystem( promoteRequest.getSource().toString() );
+        fileCopyRequest.setTargetFilesystem( promoteRequest.getTarget().toString() );
+        fileCopyRequest.setPaths( promoteRequest.getPaths() );
+
+        FileCopyResult fileCopyResult = storageService.copy(fileCopyRequest);
+
+        if ( fileCopyResult.isSuccess() )
+        {
+            return promoteRequest.getPaths().stream().map(PathTransferResult::new).collect( toSet() );
+        }
+
+        // Otherwise, return error message
+        PathTransferResult errResult = new PathTransferResult();
+        errResult.error = "Copy failed: " + fileCopyResult.getMessage();
+        Set<PathTransferResult> errResults = new HashSet<>( 1 );
+        errResults.add( errResult );
+        return errResults;
     }
 
 /*
