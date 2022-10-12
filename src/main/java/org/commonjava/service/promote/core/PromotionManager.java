@@ -42,7 +42,6 @@ import java.util.*;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
@@ -449,7 +448,7 @@ public class PromotionManager
         PathsPromoteResult result;
         if ( !errors.isEmpty() )
         {
-            List<String> rollbackErrors = promotionHelper.deleteViaStorageService( completed, request.getTarget() );
+            Set<String> rollbackErrors = promotionHelper.delete( request.getTarget(), completed );
             errors.addAll( rollbackErrors );
             result = new PathsPromoteResult( request, pending, emptySet(), emptySet(), StringUtils.join( errors, "\n" ),
                                              validation );

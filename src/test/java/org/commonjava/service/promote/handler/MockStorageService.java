@@ -2,9 +2,7 @@ package org.commonjava.service.promote.handler;
 
 import io.quarkus.test.Mock;
 import org.apache.http.HttpStatus;
-import org.commonjava.service.promote.client.storage.FileCopyRequest;
-import org.commonjava.service.promote.client.storage.FileCopyResult;
-import org.commonjava.service.promote.client.storage.StorageService;
+import org.commonjava.service.promote.client.storage.*;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +21,15 @@ public class MockStorageService implements StorageService
     public Response delete(String filesystem, String path) {
         logger.info( "Invoke storage delete, filesystem: {},path: {}", filesystem, path );
         return Response.status(HttpStatus.SC_OK).build();
+    }
+
+    @Override
+    public Response delete(BatchDeleteRequest request) {
+        logger.info( "Invoke batch delete, request: {}", request );
+        BatchDeleteResult result = new BatchDeleteResult();
+        result.setFilesystem( request.getFilesystem() );
+        result.setSucceeded( request.getPaths() );
+        return Response.status(SC_OK).entity(result).build();
     }
 
     @Override
