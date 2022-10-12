@@ -15,39 +15,62 @@
  */
 package org.commonjava.service.promote.core;
 
+import org.commonjava.service.promote.client.storage.BatchDeleteRequest;
+import org.commonjava.service.promote.client.storage.BatchDeleteResult;
+import org.commonjava.service.promote.client.storage.StorageService;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.StoreKey;
 
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static java.util.Collections.emptyList;
-
 
 @ApplicationScoped
 public class PromotionHelper
 {
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
+    @Inject
+    @RestClient
+    private StorageService storageService;
+
     public PromotionHelper()
     {
     }
 
-    public void purgeSourceQuietly( StoreKey src, Set<String> paths )
+    public void purgeSourceQuietly( StoreKey store, Set<String> paths )
     {
-        deleteViaStorageService( paths, src );
+        delete( store, paths );
     }
 
-    public List<String> deleteViaStorageService(Set<String> completed, StoreKey target) {
-        // TODO: delete completed paths from target to revert the promotion
-        return emptyList();
+    /**
+     * Delete paths from target store.
+     * @return Error messages.
+     */
+    public Set<String> delete(StoreKey store, Set<String> paths ) {
+        BatchDeleteRequest request = new BatchDeleteRequest();
+        request.setFilesystem( store.toString() );
+        request.setPaths( paths );
+        Response resp = storageService.delete(request);
+
+        Set<String> result = new HashSet<>();
+        if ( Response.Status.fromStatusCode( resp.getStatus() ).getFamily()
+                != Response.Status.Family.SUCCESSFUL  )
+        {
+            result.add( "Delete failed, resp status: " + resp.getStatus() );
+        }
+
+        BatchDeleteResult deleteResult = resp.readEntity(BatchDeleteResult.class);
+        return deleteResult.getFailed();
     }
 
     static class PromotionRepoRetrievalResult
