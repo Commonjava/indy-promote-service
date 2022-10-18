@@ -1,11 +1,9 @@
 package rules
 
 import org.apache.commons.lang.StringUtils
-import org.commonjava.service.promote.util.PackageTypeConstants
 import org.commonjava.service.promote.validate.PromotionValidationException
 import org.commonjava.service.promote.validate.ValidationRequest
 import org.commonjava.service.promote.validate.ValidationRule
-import org.commonjava.service.promote.util.ContentDigest
 
 class NoPreExistingPaths implements ValidationRule {
 
@@ -19,9 +17,7 @@ class NoPreExistingPaths implements ValidationRule {
             def aref = tools.getArtifact(it);
             if (aref != null) {
                 tools.forEach(verifyStoreKeys, { verifyStoreKey ->
-                    if (tools.exists(verifyStoreKey, it)
-                            && !(tools.digest(verifyStoreKey, it, PackageTypeConstants.PKG_TYPE_MAVEN).get(ContentDigest.SHA_256)
-                            .equals(tools.digest(request.getPromoteRequest().getSource(), it, PackageTypeConstants.PKG_TYPE_MAVEN).get(ContentDigest.SHA_256)))) {
+                    if (tools.exists(verifyStoreKey, it)) {
                         synchronized(errors){
                             errors.add(String.format("%s is already available with different checksum in: %s", it, verifyStoreKey))
                         }
