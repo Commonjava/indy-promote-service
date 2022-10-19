@@ -17,6 +17,7 @@ package org.commonjava.service.promote.validate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import groovy.lang.Closure;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.cdi.util.weft.PoolWeftExecutorService;
 import org.commonjava.cdi.util.weft.WeftExecutorService;
@@ -29,23 +30,12 @@ import org.commonjava.atlas.maven.ident.util.ArtifactPathInfo;
 import org.commonjava.indy.pkg.npm.content.PackagePath;
 import org.commonjava.indy.pkg.npm.model.PackageMetadata;
 
-/*
-import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.event.EventMetadata;
-import org.commonjava.maven.galley.maven.GalleyMavenException;
-import org.commonjava.maven.galley.maven.model.view.MavenPomView;
-import org.commonjava.maven.galley.maven.model.view.meta.MavenMetadataView;
-import org.commonjava.maven.galley.maven.parse.MavenMetadataReader;
-import org.commonjava.maven.galley.maven.parse.MavenPomReader;
-import org.commonjava.maven.galley.maven.rel.MavenModelProcessor;
-import org.commonjava.maven.galley.maven.spi.type.TypeMapper;
-import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
-import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Transfer;
-*/
-
+import org.commonjava.service.promote.client.storage.StorageService;
 import org.commonjava.service.promote.config.PromoteConfig;
+import org.commonjava.service.promote.core.ContentDigester;
 import org.commonjava.service.promote.model.StoreKey;
+import org.commonjava.service.promote.util.ContentDigest;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +43,10 @@ import org.slf4j.MDC;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 import java.util.concurrent.CountDownLatch;
@@ -61,6 +55,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.apache.http.HttpStatus.SC_OK;
 import static org.commonjava.service.promote.util.Batcher.batch;
 import static org.commonjava.service.promote.util.Batcher.getParalleledBatchSize;
 
@@ -76,9 +71,9 @@ public class PromotionValidationTools
 
     private static final int DEFAULT_RULE_PARALLEL_WAIT_TIME_MINS = 30;
 
-    private static final String ITERATION_DEPTH = "promotion-validation-parallel-depth";
+    //private static final String ITERATION_DEPTH = "promotion-validation-parallel-depth";
 
-    private static final String ITERATION_ITEM = "promotion-validation-parallel-item";
+    //private static final String ITERATION_ITEM = "promotion-validation-parallel-item";
 
 /*
     @Inject
@@ -101,10 +96,10 @@ public class PromotionValidationTools
 
     @Inject
     private TransferManager transferManager;
+*/
 
     @Inject
-    private ContentDigester contentDigester;
-*/
+    ContentDigester contentDigester;
 
     @Inject
     PromoteConfig promoteConfig;
@@ -117,6 +112,10 @@ public class PromotionValidationTools
     @ExecutorConfig( named = "promote-validation-rules-executor", threads = 8 )
     WeftExecutorService ruleParallelExecutor;
 
+    @Inject
+    @RestClient
+    StorageService storageService;
+
     protected PromotionValidationTools()
     {
     }
@@ -125,7 +124,7 @@ public class PromotionValidationTools
                                      //final MavenPomReader pomReader, final MavenMetadataReader metadataReader,
                                      //final MavenModelProcessor modelProcessor, final TypeMapper typeMapper,
                                      //final TransferManager transferManager,
-                                     //final ContentDigester contentDigester,
+                                     final ContentDigester contentDigester,
                                      final ThreadPoolExecutor ruleParallelExecutor, final PromoteConfig config )
     {
         //contentManager = manager;
@@ -135,7 +134,7 @@ public class PromotionValidationTools
         //this.modelProcessor = modelProcessor;
         //this.typeMapper = typeMapper;
         //this.transferManager = transferManager;
-        //this.contentDigester = contentDigester;
+        this.contentDigester = contentDigester;
         this.ruleParallelExecutor = new PoolWeftExecutorService( "promote-validation-rules-executor", ruleParallelExecutor );
         this.promoteConfig = config;
     }
@@ -303,8 +302,7 @@ public class PromotionValidationTools
     }
 */
 
-/*
-    public MavenPomView readLocalPom( final String path, final ValidationRequest request )
+    public void readLocalPom( final String path, final ValidationRequest request )
             throws Exception
     {
         ArtifactRef artifactRef = getArtifact( path );
@@ -312,44 +310,31 @@ public class PromotionValidationTools
         {
             throw new Exception( String.format("Invalid artifact path: %s. Could not parse ArtifactRef from path.", path) );
         }
-        Transfer transfer = retrieve( request.getSource(), path );
-        return pomReader.readLocalPom( artifactRef.asProjectVersionRef(), transfer, MavenPomView.ALL_PROFILES );
-
-        // TODO: re-implement 'readLocalPom' by micro service API
-        return null;
+        String srcFilesystem = request.getSource().toString();
+        Response resp = storageService.retrieve(srcFilesystem, path);
+        if ( resp.getStatus() == SC_OK ) {
+            MavenXpp3Reader reader = new MavenXpp3Reader();
+            reader.read(resp.readEntity(InputStream.class));
+        }
+        throw new Exception( String.format("File not exist, srcFilesystem: %s, path: %s", srcFilesystem, path) );
     }
-*/
 
     public PackageMetadata readLocalPackageJson(final String path, final ValidationRequest request )
             throws Exception
     {
-        // TODO: re-implement 'readLocalPackageJson' by micro service API
-        return null;
-/*
-        Transfer transfer = retrieve( request.getSource(), path );
-        try
-        {
-            if ( transfer.exists() && transfer.getPath().endsWith( "package.json" ) )
+        String srcFilesystem = request.getSource().toString();
+        Response resp = storageService.retrieve(srcFilesystem, path);
+        if ( resp.getStatus() == SC_OK ) {
+            try (InputStream is = resp.readEntity( InputStream.class ))
             {
-                try (InputStream is = transfer.openInputStream())
-                {
-                    return objectMapper.readValue( is, PackageMetadata.class );
-                }
-            }
-            else
-            {
-                throw new Exception(
-                        "Invalid artifact path: %s. Could not parse package metadata from path.", path );
+                return objectMapper.readValue( is, PackageMetadata.class );
             }
         }
-        catch ( IOException e )
+        else
         {
             throw new Exception(
-                    String.format("Invalid artifact path: %s. Could not parse package metadata from path by error: %s", path,
-                    e.getMessage()) );
+                    String.format("Invalid artifact path: %s. Could not parse package metadata from path.", path ));
         }
-*/
-
     }
 
     public ArtifactRef getArtifact( final String path )
@@ -524,25 +509,15 @@ public class PromotionValidationTools
     public boolean exists( final StoreKey storeKey, final String path )
             throws Exception
     {
-        // TODO: re-implement 'exists' by micro service API
-        return false;
-/*
-        ArtifactStore store = getArtifactStore( storeKey );
-        if ( store == null )
+        Response resp = storageService.exists(storeKey.toString(), path);
+        if ( resp.getStatus() == SC_OK )
         {
-            throw new IndyDataException( "Artifact store with key " + storeKey + " was not found." );
+            return true;
         }
-        return contentManager.exists( store, path );
-*/
+        return false;
     }
 
 /*
-    public boolean exists( final ArtifactStore store, final String path )
-            throws Exception
-    {
-        return contentManager.exists( store, path );
-    }
-
     public List<StoreResource> list( final ArtifactStore store, final String path )
             throws Exception
     {
@@ -560,14 +535,13 @@ public class PromotionValidationTools
     {
         return contentManager.list( stores, path );
     }
-
-    public Map<ContentDigest, String> digest( final StoreKey key, final String path, String packageType )
+*/
+    public String digest( final StoreKey key, final String path, ContentDigest digest )
             throws Exception
     {
-        return contentDigester.digest( key, path, new EventMetadata( packageType ).set( FORCE_CHECKSUM, Boolean.TRUE ) )
-                .getDigests();
+        return contentDigester.digest( key, path, digest );
     }
-
+/*
     public HttpExchangeMetadata getHttpMetadata( final Transfer txfr )
             throws Exception
     {
@@ -659,7 +633,7 @@ public class PromotionValidationTools
             {
                 logger.trace( "The paralleled exe on batch {}", batch );
                 batch.forEach( e -> {
-                    String depthStr = MDC.get( ITERATION_DEPTH );
+                    //String depthStr = MDC.get( ITERATION_DEPTH );
                     //RequestContextHelper.setContext( ITERATION_DEPTH, depthStr == null ? "0" : String.valueOf( Integer.parseInt( depthStr ) + 1 ) );
                     //RequestContextHelper.setContext( ITERATION_ITEM, String.valueOf( e ) );
                     try
@@ -668,8 +642,8 @@ public class PromotionValidationTools
                     }
                     finally
                     {
-                        MDC.remove( ITERATION_ITEM );
-                        MDC.remove( ITERATION_DEPTH );
+                        //MDC.remove( ITERATION_ITEM );
+                        //MDC.remove( ITERATION_DEPTH );
                     }
                 } );
             }
@@ -687,7 +661,7 @@ public class PromotionValidationTools
         Set<T> todo = new HashSet<>( runCollection );
         final CountDownLatch latch = new CountDownLatch( todo.size() );
         todo.forEach( e -> ruleParallelExecutor.execute( () -> {
-            String depthStr = MDC.get( ITERATION_DEPTH );
+            //String depthStr = MDC.get( ITERATION_DEPTH );
             //RequestContextHelper.setContext( ITERATION_DEPTH, depthStr == null ? "0" : String.valueOf( Integer.parseInt( depthStr ) + 1 ) );
             //RequestContextHelper.setContext( ITERATION_ITEM, String.valueOf( e ) );
 
@@ -699,8 +673,8 @@ public class PromotionValidationTools
             finally
             {
                 latch.countDown();
-                MDC.remove( ITERATION_ITEM );
-                MDC.remove( ITERATION_DEPTH );
+                //MDC.remove( ITERATION_ITEM );
+                //MDC.remove( ITERATION_DEPTH );
             }
         } ) );
 

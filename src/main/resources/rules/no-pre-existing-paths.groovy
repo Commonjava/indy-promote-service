@@ -1,7 +1,6 @@
 package rules
 
 import org.apache.commons.lang.StringUtils
-import org.commonjava.service.promote.util.PackageTypeConstants
 import org.commonjava.service.promote.validate.PromotionValidationException
 import org.commonjava.service.promote.validate.ValidationRequest
 import org.commonjava.service.promote.validate.ValidationRule
@@ -18,10 +17,10 @@ class NoPreExistingPaths implements ValidationRule {
         tools.paralleledInBatch(request.getSourcePaths(), { it ->
             def aref = tools.getArtifact(it);
             if (aref != null) {
+                String checksum = tools.digest(request.getPromoteRequest().getSource(), it, ContentDigest.SHA_256);
                 tools.forEach(verifyStoreKeys, { verifyStoreKey ->
                     if (tools.exists(verifyStoreKey, it)
-                            && !(tools.digest(verifyStoreKey, it, PackageTypeConstants.PKG_TYPE_MAVEN).get(ContentDigest.SHA_256)
-                            .equals(tools.digest(request.getPromoteRequest().getSource(), it, PackageTypeConstants.PKG_TYPE_MAVEN).get(ContentDigest.SHA_256)))) {
+                            && !(tools.digest(verifyStoreKey, it, ContentDigest.SHA_256).equals(checksum))) {
                         synchronized(errors){
                             errors.add(String.format("%s is already available with different checksum in: %s", it, verifyStoreKey))
                         }

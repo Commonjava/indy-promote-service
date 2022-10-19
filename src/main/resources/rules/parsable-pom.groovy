@@ -17,7 +17,7 @@ class ParsablePom implements ValidationRule {
             if (it.endsWith(".pom")) {
                 logger.info("Parsing POM from path: {}.", it)
                 try {
-                    def pom = tools.readLocalPom(it, request)
+                    tools.readLocalPom(it, request)
                 }
                 catch (Exception e) {
                     synchronized(errors) {
