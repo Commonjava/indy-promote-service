@@ -35,7 +35,7 @@ public class ScriptEngine
 
     private final GroovyClassLoader groovyClassloader = new GroovyClassLoader();
 
-    protected ScriptEngine()
+    public ScriptEngine()
     {
     }
 

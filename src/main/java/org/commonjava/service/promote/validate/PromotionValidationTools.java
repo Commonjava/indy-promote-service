@@ -75,29 +75,6 @@ public class PromotionValidationTools
 
     //private static final String ITERATION_ITEM = "promotion-validation-parallel-item";
 
-/*
-    @Inject
-    private ContentManager contentManager;
-
-    @Inject
-    private StoreDataManager storeDataManager;
-
-    @Inject
-    private MavenPomReader pomReader;
-
-    @Inject
-    private MavenMetadataReader metadataReader;
-
-    @Inject
-    private MavenModelProcessor modelProcessor;
-
-    @Inject
-    private TypeMapper typeMapper;
-
-    @Inject
-    private TransferManager transferManager;
-*/
-
     @Inject
     ContentDigester contentDigester;
 
@@ -120,20 +97,9 @@ public class PromotionValidationTools
     {
     }
 
-    public PromotionValidationTools( //final ContentManager manager, final StoreDataManager storeDataManager,
-                                     //final MavenPomReader pomReader, final MavenMetadataReader metadataReader,
-                                     //final MavenModelProcessor modelProcessor, final TypeMapper typeMapper,
-                                     //final TransferManager transferManager,
-                                     final ContentDigester contentDigester,
+    public PromotionValidationTools( final ContentDigester contentDigester,
                                      final ThreadPoolExecutor ruleParallelExecutor, final PromoteConfig config )
     {
-        //contentManager = manager;
-        //this.storeDataManager = storeDataManager;
-        //this.pomReader = pomReader;
-        //this.metadataReader = metadataReader;
-        //this.modelProcessor = modelProcessor;
-        //this.typeMapper = typeMapper;
-        //this.transferManager = transferManager;
         this.contentDigester = contentDigester;
         this.ruleParallelExecutor = new PoolWeftExecutorService( "promote-validation-rules-executor", ruleParallelExecutor );
         this.promoteConfig = config;

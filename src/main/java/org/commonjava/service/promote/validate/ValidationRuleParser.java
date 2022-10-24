@@ -124,7 +124,7 @@ public class ValidationRuleParser
         return parseRuleSet( spec, script.getName() );
     }
 
-    private ValidationRuleSet parseRuleSet( final String spec, final String scriptName )
+    public ValidationRuleSet parseRuleSet( final String spec, final String scriptName )
             throws PromotionValidationException
     {
         if ( spec == null )
