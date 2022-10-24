@@ -16,22 +16,24 @@
 package org.commonjava.service.promote.validate;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.ClassUtils;
+import org.apache.http.HttpStatus;
 import org.commonjava.cdi.util.weft.DrainingExecutorCompletionService;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.cdi.util.weft.WeftExecutorService;
 import org.commonjava.cdi.util.weft.WeftManaged;
 
+import org.commonjava.service.promote.client.repository.ArtifactStore;
+import org.commonjava.service.promote.client.repository.RepositoryService;
 import org.commonjava.service.promote.config.PromoteConfig;
-import org.commonjava.service.promote.model.PathsPromoteRequest;
-import org.commonjava.service.promote.model.PromoteRequest;
-import org.commonjava.service.promote.model.ValidationResult;
-import org.commonjava.service.promote.model.ValidationRuleSet;
+import org.commonjava.service.promote.model.*;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,9 +41,9 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import static java.lang.String.format;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.join;
 
-import static org.commonjava.o11yphant.metrics.util.NameUtils.name;
 import static org.commonjava.service.promote.util.PoolUtils.detectOverloadVoid;
 
 @ApplicationScoped
@@ -59,20 +61,17 @@ public class PromotionValidator
     @Inject
     PromotionValidationTools validationTools;
 
-/*
     @Inject
-    private StoreDataManager storeDataMgr;
-
-    @Inject
-    private DownloadManager downloadManager;
-*/
+    @RestClient
+    RepositoryService repositoryService;
 
     @Inject
     PromoteConfig config;
 
     @Inject
     @WeftManaged
-    @ExecutorConfig( named = "promote-validation-rules-runner", threads = 20, priority = 5, loadSensitive = ExecutorConfig.BooleanLiteral.TRUE, maxLoadFactor = 400 )
+    @ExecutorConfig( named = "promote-validation-rules-runner", threads = 20, priority = 5,
+            loadSensitive = ExecutorConfig.BooleanLiteral.TRUE, maxLoadFactor = 400 )
     WeftExecutorService validateService;
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -82,45 +81,30 @@ public class PromotionValidator
     }
 
     public PromotionValidator( PromoteValidationsManager validationsManager, PromotionValidationTools validationTools,
-                               //StoreDataManager storeDataMgr, DownloadManager downloadManager,
                                WeftExecutorService validateService )
     {
         this.validationsManager = validationsManager;
         this.validationTools = validationTools;
-/*
-        this.storeDataMgr = storeDataMgr;
-        this.downloadManager = downloadManager;
-*/
         this.validateService = validateService;
     }
 
-    /**
-     * NOTE: As of Indy 1.2.6, ValidationRequest passed back to enable further post-processing, especially of promotion
-     * paths, after promotion takes place. This enables us to avoid re-executing recursive path discovery, for instance.
-     *
-     * @param request
-     * @param baseUrl
-     */
     public ValidationResult validate(PromoteRequest request, String baseUrl )
             throws PromotionValidationException
     {
         ValidationResult result = new ValidationResult();
 
         ValidationRuleSet set = validationsManager.getRuleSetMatching( request.getTarget() );
-/*
 
         ArtifactStore source;
         try
         {
-            source = storeDataMgr.getArtifactStore( request.getSource() );
+            source = getStore( request.getSource() );
         }
         catch ( Exception e )
         {
             throw new PromotionValidationException(
-                    String.format( "Failed to retrieve source ArtifactStore: %s for validation", request.getSource() ),
-                    e );
+                    String.format( "Failed to retrieve source store: %s for validation", request.getSource() ), e );
         }
-*/
 
         if ( set != null )
         {
@@ -128,7 +112,6 @@ public class PromotionValidator
             //RequestContextHelper.setContext( PROMOTION_VALIDATION_RULE_SET, set.getName() );
 
             logger.debug( "Running validation rule-set for promotion: {}", set.getName() );
-
             List<String> ruleNames = set.getRuleNames();
             if ( ruleNames != null && !ruleNames.isEmpty() )
             {
@@ -177,17 +160,13 @@ public class PromotionValidator
                         throw new PromotionValidationException( format( "Failed to do promotion validation: \n\n%s", join( errors, "\n" ) ) );
                     }
                 }
-                catch ( InterruptedException e )
-                {
-                    throw new PromotionValidationException( "Failed to do promotion validation: validation execution has been interrupted ", e );
-                }
-                catch ( ExecutionException e )
+                catch ( InterruptedException | ExecutionException e )
                 {
                     throw new PromotionValidationException( "Failed to execute promotion validations", e );
                 }
+/*
                 finally
                 {
-/*
                     if ( needTempRepo( request ) )
                     {
                         try
@@ -213,8 +192,8 @@ public class PromotionValidator
                             logger.warn( "Temporary promotion validation repository was NOT removed correctly.", e );
                         }
                     }
-*/
                 }
+*/
                 return result;
             }
             else
@@ -234,9 +213,7 @@ public class PromotionValidator
                                         final ValidationResult result, final PromoteRequest request )
             throws PromotionValidationException
     {
-        String ruleName =
-                new File( ruleRef ).getName(); // flatten in case some path fragment leaks in...
-
+        String ruleName = new File( ruleRef ).getName();
         ValidationRuleMapping rule = validationsManager.getRuleMappingNamed( ruleName );
         if ( rule != null )
         {
@@ -249,11 +226,11 @@ public class PromotionValidator
                 }
                 catch ( Exception e )
                 {
-                    throwException( e, rule, request );
+                    throwValidationException( e, rule, request );
                 }
             }
 
-            if ( StringUtils.isNotEmpty( error ) )
+            if ( isNotEmpty( error ) )
             {
                 logger.debug( "{} failed with error: {}", rule.getName(), error );
                 result.addValidatorError( rule.getName(), error );
@@ -265,24 +242,48 @@ public class PromotionValidator
         }
     }
 
-    private void throwException( Exception e, ValidationRuleMapping rule, PromoteRequest request )
+    private void throwValidationException( Exception e, ValidationRuleMapping rule, PromoteRequest request )
             throws PromotionValidationException
     {
         if ( e instanceof PromotionValidationException )
         {
             throw (PromotionValidationException) e;
         }
-
         throw new PromotionValidationException( "Failed to run validation rule: {} for request: {}. Reason: {}", e,
                 rule.getName(), request, e );
     }
 
-    private String getMetricName( String ruleName )
+    public ArtifactStore getStore(StoreKey key )
     {
-        String cls = ClassUtils.getAbbreviatedName( getClass().getName(), 1 );
-        return name( cls, "rule", ruleName );
+        Response response;
+        try
+        {
+            response = repositoryService.getStore(key.getPackageType(), key.getType().name(), key.getName());
+        }
+        catch ( WebApplicationException e )
+        {
+            if (e.getResponse().getStatus() == HttpStatus.SC_NOT_FOUND )
+            {
+                return null;
+
+            }
+            else
+            {
+                throw e;
+            }
+        }
+        if ( response != null && response.getStatus() == HttpStatus.SC_OK )
+        {
+            return response.readEntity(ArtifactStore.class);
+        }
+        return null;
     }
 
+/*
+ * Why creating temp remote repo is needed? Before validation, a temp remote repo is created and points to the
+ * promote source repo. This was used for performance or solving some sort of race condition. Yet no one really know
+ * whether this is still needed. Hereby I comment out the temp repo code. ruhan Oct 2022.
+ *
     private boolean needTempRepo( PromoteRequest promoteRequest )
             throws PromotionValidationException
     {
@@ -296,9 +297,7 @@ public class PromotionValidator
             throw new PromotionValidationException( "The promote request is not a valid request, should not happen" );
         }
     }
-/*
- * TODO: Figure out why creating temp remote repo is needed.
- *
+
     private ArtifactStore getRequestStore( PromoteRequest promoteRequest, String baseUrl )
             throws PromotionValidationException
     {
