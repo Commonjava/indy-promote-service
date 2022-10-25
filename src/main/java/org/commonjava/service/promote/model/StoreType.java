@@ -3,13 +3,11 @@ package org.commonjava.service.promote.model;
 import java.util.HashSet;
 import java.util.Set;
 
-//@ApiClass( description = "Enumeration of types of artifact storage on the system. This forms half of the 'primary key' for each store (the other half is the store's name).", value = "Type of artifact storage." )
 public enum StoreType
 {
-    group( false, "group", "groups", "g" ), remote( false, "remote", "remotes", "repository", "repositories",
-                                                                 "r" ), hosted( true, "hosted", "hosted", "deploy", "deploys", "deploy_point", "h", "d" );
-
-    //    private static final Logger logger = new Logger( StoreType.class );
+    group( false, "group", "groups", "g" ),
+    remote( false, "remote", "remotes", "repository", "repositories", "r" ),
+    hosted( true, "hosted", "hosted", "deploy", "deploys", "deploy_point", "h", "d" );
 
     private final boolean writable;
 
