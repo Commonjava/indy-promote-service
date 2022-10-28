@@ -25,8 +25,10 @@ class PathTransferResult
 
     public PathTransferResult() {}
 
-    public PathTransferResult( final String path )
+    public PathTransferResult( final String path, final boolean skipped, final String error )
     {
         this.path = path;
+        this.skipped = skipped;
+        this.error = error;
     }
 }

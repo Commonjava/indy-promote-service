@@ -23,6 +23,9 @@ public class ContentDigester {
     @RestClient
     StorageService storageService;
 
+    public ContentDigester() {
+    }
+
     public String digest(StoreKey key, String path, ContentDigest digest) throws IOException {
         // retrieve the checksum file if exists
         Response resp = storageService.retrieve(key.toString(), path + digest.getFileExt());

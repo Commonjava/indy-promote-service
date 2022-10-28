@@ -1,5 +1,6 @@
 package org.commonjava.service.promote.config;
 
+import javax.enterprise.context.ApplicationScoped;
 import java.io.File;
 
 public class TestPromoteConfig implements PromoteConfig {
