@@ -273,7 +273,7 @@ public class PromotionManager
             String[] listResult = (String[]) resp.getEntity();
 
             paths = Arrays.stream(listResult).sequential()
-                    .filter(getMetadataPredicate().negate()).collect(Collectors.toSet()); // exclude metadata
+                    .filter(isMetadataPredicate().negate()).collect(Collectors.toSet()); // exclude metadata
             request.setPaths( paths );
             logger.info( "List source repo, paths: {}", paths );
         }
