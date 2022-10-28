@@ -25,6 +25,8 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.commonjava.service.promote.core.PromotionHelper.*;
+
 public class ValidationRequest
 {
     private final PromoteRequest promoteRequest;
@@ -32,9 +34,6 @@ public class ValidationRequest
     private final ValidationRuleSet ruleSet;
 
     private final StoreKey sourceRepository;
-
-    private static final Predicate<String> DEFAULT_FILTER =
-            getMetadataPredicate().negate().and( getChecksumPredicate().negate() );
 
     private static final String VERSION_PATTERN = "versionPattern";
 
@@ -52,18 +51,18 @@ public class ValidationRequest
 
     public Set<String> getSourcePaths()
     {
-        return getSourcePaths( false, false, DEFAULT_FILTER );
+        return getSourcePaths( false, false, NOT_METADATA_AND_CHECKSUM);
     }
 
     public Set<String> getSourcePaths( boolean includeMetadata, boolean includeChecksums )
     {
         Predicate<String> metadata = asPredicate( includeMetadata ).or( getMetadataPredicate().negate() );
         Predicate<String> checksums = asPredicate( includeChecksums ).or( getChecksumPredicate().negate() );
-        return getSourcePaths( includeMetadata, includeChecksums ,metadata.and( checksums ) );
+        return getSourcePaths( includeMetadata, includeChecksums, metadata.and( checksums ) );
     }
 
     private Set<String> getSourcePaths( boolean includeMetadata,
-                                        boolean includeChecksums , Predicate<String> filter )
+                                        boolean includeChecksums, Predicate<String> filter )
     {
         PathsPromoteRequest promoteRequest = (PathsPromoteRequest)getPromoteRequest();
         if ( !includeMetadata || !includeChecksums )
@@ -120,14 +119,6 @@ public class ValidationRequest
 
     private Predicate<String> asPredicate( boolean value ) {
         return ( path ) -> value;
-    }
-
-    private static Predicate<String> getMetadataPredicate () {
-        return Pattern.compile( ".+/maven-metadata\\.xml(\\.(md5|sha[0-9]+))?" ).asPredicate();
-    }
-
-    private static Predicate<String> getChecksumPredicate () {
-        return Pattern.compile( ".+\\.(md5|sha[0-9]+)" ).asPredicate();
     }
 
     public PromotionValidationTools getTools() {

@@ -61,9 +61,11 @@ public class PromotionValidator
     @Inject
     PromotionValidationTools validationTools;
 
+/*
     @Inject
     @RestClient
     RepositoryService repositoryService;
+*/
 
     @Inject
     PromoteConfig config;
@@ -95,6 +97,7 @@ public class PromotionValidator
 
         ValidationRuleSet set = validationsManager.getRuleSetMatching( request.getTarget() );
 
+/*
         ArtifactStore source;
         try
         {
@@ -105,6 +108,7 @@ public class PromotionValidator
             throw new PromotionValidationException(
                     String.format( "Failed to retrieve source store: %s for validation", request.getSource() ), e );
         }
+*/
 
         if ( set != null )
         {
@@ -253,6 +257,7 @@ public class PromotionValidator
                 rule.getName(), request, e );
     }
 
+/*
     public ArtifactStore getStore(StoreKey key )
     {
         Response response;
@@ -278,6 +283,7 @@ public class PromotionValidator
         }
         return null;
     }
+*/
 
 /*
  * Why creating temp remote repo is needed? Before validation, a temp remote repo is created and points to the

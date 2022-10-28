@@ -42,9 +42,9 @@ import java.util.*;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 
 import static org.commonjava.service.promote.core.PromotionHelper.*;
@@ -53,8 +53,6 @@ import static org.commonjava.service.promote.util.PoolUtils.detectOverload;
 /**
  * Component responsible for orchestrating the transfer of artifacts from one store to another
  * according to the given {@link PathsPromoteRequest} or {@link PathsPromoteResult}.
- *
- * @author jdcasey
  */
 @ApplicationScoped
 public class PromotionManager
@@ -84,6 +82,8 @@ public class PromotionManager
     @Inject
     @RestClient
     private StorageService storageService;
+
+    private static String TYPE_FILE = "file"; // for listing
 
     protected PromotionManager()
     {
@@ -256,31 +256,27 @@ public class PromotionManager
     private PathsPromoteResult doPathsPromotion( PathsPromoteRequest request, boolean skipValidation, String baseUrl )
                     throws Exception
     {
-        final Set<String> paths = request.getPaths();
-        final StoreKey source = request.getSource();
+        Set<String> paths = request.getPaths();
+        StoreKey source = request.getSource();
         logger.info( "Do paths promotion, promotionId: {}, source: {}, target: {}, size: {}", request.getPromotionId(),
                      source, request.getTarget(), paths != null ? paths.size() : -1 );
 
-/*
-        List<Transfer> contents;
+        // If no paths in the request, we query storage service to list all non-metadata files
         if ( paths == null || paths.isEmpty() )
         {
+            Response resp = storageService.list(source.toString(), true, TYPE_FILE, 0); // no limit
+            if ( Response.Status.fromStatusCode( resp.getStatus() ).getFamily()
+                    != Response.Status.Family.SUCCESSFUL  )
+            {
+                return new PathsPromoteResult( request,"List source repo failed, resp status: " + resp.getStatus() );
+            }
+            String[] listResult = (String[]) resp.getEntity();
 
- * TODO: listing source repo for paths is not used as far as I know. I would like to defer or deprecate it.
- * If users were to specify a source repo with no paths in the request, we need to query Storage service to list all files.
- *
-            // This is used to let galley ignore the NPMPathStorageCalculator handling,
-            // which will append package.json to a directory transfer and make listing not applicable.
-            ThreadContext context = ThreadContext.getContext( true );
-            context.put( RequestContextHelper.IS_RAW_VIEW, Boolean.TRUE );
-            contents = downloadManager.listRecursively( source, DownloadManager.ROOT_PATH );
-            context.put( RequestContextHelper.IS_RAW_VIEW, Boolean.FALSE );
+            paths = Arrays.stream(listResult).sequential()
+                    .filter(getMetadataPredicate().negate()).collect(Collectors.toSet()); // exclude metadata
+            request.setPaths( paths );
+            logger.info( "List source repo, paths: {}", paths );
         }
-        else
-        {
-            contents = promotionHelper.getTransfersForPaths( source, paths );
-        }
-*/
 
         final Set<String> pending = request.getPaths();
         if ( pending.isEmpty() )
@@ -367,62 +363,6 @@ public class PromotionManager
             return new PathsPromoteResult( request, pending, emptySet(), emptySet(),
                                            StringUtils.join( checkResult.errors, "\n" ), validation );
         }
-/*
-        final ArtifactStore targetStore = checkResult.targetStore;
-
-        StoreKey targetKey = request.getTarget();
-        logger.info( "Run promotion from: {} to: {}, paths: {}", request.getSource(), targetKey, pending );
-        Set<Group> affectedGroups;
-        try
-        {
-            affectedGroups = storeManager.query().getGroupsAffectedBy( targetKey );
-            logger.info( "Get affected groups, target: {}, affected-groups: {}", targetKey, affectedGroups );
-        }
-        catch ( Exception e )
-        {
-            logger.error( "Get affected groups failed", e );
-            return new PathsPromoteResult( request, pending, emptySet(), emptySet(),
-                                           "Get affected groups failed, " + e.getMessage(), validation );
-        }
-
-        DrainingExecutorCompletionService<Set<PathTransferResult>> svc =
-                        new DrainingExecutorCompletionService<>( transferService );
-
-        int corePoolSize = transferService.getCorePoolSize();
-        int size = contents.size();
-        int batchSize = getParalleledBatchSize( size, corePoolSize );
-        logger.info( "Execute parallel on collection, size: {}, batch: {}", size, batchSize );
-        Collection<Collection<Transfer>> batches = batch( contents, batchSize );
-
-        final List<String> errors = new ArrayList<>();
-
-        try
-        {
-            detectOverloadVoid( () -> batches.forEach(
-                            batch -> svc.submit( newPathPromotionsJob( batch, targetStore, request, affectedGroups ) ) ) );
-        }
-        catch ( Exception e )
-        {
-            // might be PoolOverloadException. Log it and continue to revert any completed paths
-            String msg = String.format( "Failed to submit all path promotion jobs. Error: %s", e.toString() );
-            logger.error( msg, e );
-            errors.add( msg );
-        }
-
-        final Set<PathTransferResult> results = new HashSet<>();
-
-        try
-        {
-            svc.drain( results::addAll );
-        }
-        catch ( Exception e )
-        {
-            String msg = String.format( "Error waiting for promotion of: %s to: %s", request.getSource(),
-                                        request.getTarget() );
-            logger.error( msg, e );
-            errors.add( msg );
-        }
-*/
 
         final Set<PathTransferResult> results = copy( request );
 
@@ -491,7 +431,6 @@ public class PromotionManager
         fileCopyRequest.setTargetFilesystem( promoteRequest.getTarget().toString() );
         fileCopyRequest.setPaths( promoteRequest.getPaths() );
 
-        //FileCopyResult fileCopyResult
         Response resp = storageService.copy(fileCopyRequest);
         if ( Response.Status.fromStatusCode( resp.getStatus() ).getFamily()
                 != Response.Status.Family.SUCCESSFUL  )
@@ -502,10 +441,21 @@ public class PromotionManager
         FileCopyResult fileCopyResult = resp.readEntity(FileCopyResult.class);
         if ( fileCopyResult.isSuccess() )
         {
-            return promoteRequest.getPaths().stream().map(PathTransferResult::new).collect( toSet() );
+            Set<PathTransferResult> results = new HashSet<>();
+            Set<String> completed = fileCopyResult.getCompleted();
+            if ( completed != null )
+            {
+                completed.forEach( p -> results.add(new PathTransferResult(p, false, null)));
+            }
+            Set<String> skipped = fileCopyResult.getSkipped();
+            if ( skipped != null )
+            {
+                skipped.forEach( p -> results.add(new PathTransferResult(p, true, null)));
+            }
+            return results;
         }
 
-        // Otherwise, return error message
+        // Otherwise return error
         return errResults( "Copy failed: " + fileCopyResult.getMessage() );
     }
 

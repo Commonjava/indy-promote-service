@@ -33,11 +33,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 @ApplicationScoped
 public class PromotionHelper
 {
     private final Logger logger = LoggerFactory.getLogger( getClass() );
+
+    public static final Predicate<String> NOT_METADATA_AND_CHECKSUM =
+            getMetadataPredicate().negate().and( getChecksumPredicate().negate() );
+
+    public static Predicate<String> getMetadataPredicate () {
+        return Pattern.compile( ".+/maven-metadata\\.xml(\\.(md5|sha[0-9]+))?" ).asPredicate();
+    }
+
+    public static Predicate<String> getChecksumPredicate () {
+        return Pattern.compile( ".+\\.(md5|sha[0-9]+)" ).asPredicate();
+    }
 
     @Inject
     @RestClient

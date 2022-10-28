@@ -6,13 +6,17 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 
 import io.restassured.response.Response;
+import org.commonjava.service.promote.client.storage.StorageService;
 import org.commonjava.service.promote.fixture.TestResources;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.PathsPromoteResult;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.StoreType;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 
+import javax.inject.Inject;
+import java.io.ByteArrayInputStream;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -30,14 +34,24 @@ public class PromoteResourceTest
 
     private ObjectMapper mapper = new ObjectMapper();
 
+    @Inject
+    @RestClient
+    StorageService storageService;
+
     @Test
     public void testPromoteAndRollback() throws Exception {
         StoreKey src = new StoreKey( "maven", StoreType.hosted, "build-1" );
         StoreKey tgt = new StoreKey( "maven", StoreType.hosted, "test-builds" );
         Set<String> paths = new HashSet<>();
-        paths.add( "foo/bar/1.0/bar-1.0.pom" );
-        paths.add( "foo/bar/1.0/bar-1.0.jar" );
+        String pathPom = "foo/bar/1.0/bar-1.0.pom";
+        String pathJar = "foo/bar/1.0/bar-1.0.jar";
+        paths.add( pathPom );
+        paths.add( pathJar );
         PathsPromoteRequest promoteRequest = new PathsPromoteRequest( src, tgt, paths );
+
+        // Prepare src file
+        storageService.put( src.toString(), pathPom, new ByteArrayInputStream( "this is a pom".getBytes()));
+        storageService.put( src.toString(), pathJar, new ByteArrayInputStream( "this is a jar even not looks like...".getBytes()));
 
         // Promote
         Response response =
