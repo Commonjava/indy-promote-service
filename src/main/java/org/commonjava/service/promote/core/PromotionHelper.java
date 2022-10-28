@@ -41,14 +41,11 @@ public class PromotionHelper
 {
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    public static final Predicate<String> NOT_METADATA_AND_CHECKSUM =
-            getMetadataPredicate().negate().and( getChecksumPredicate().negate() );
-
-    public static Predicate<String> getMetadataPredicate () {
+    public static Predicate<String> isMetadataPredicate() {
         return Pattern.compile( ".+/maven-metadata\\.xml(\\.(md5|sha[0-9]+))?" ).asPredicate();
     }
 
-    public static Predicate<String> getChecksumPredicate () {
+    public static Predicate<String> isChecksumPredicate() {
         return Pattern.compile( ".+\\.(md5|sha[0-9]+)" ).asPredicate();
     }
 

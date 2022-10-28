@@ -51,25 +51,20 @@ public class ValidationRequest
 
     public Set<String> getSourcePaths()
     {
-        return getSourcePaths( false, false, NOT_METADATA_AND_CHECKSUM);
+        return getSourcePaths( false, false );
     }
 
     public Set<String> getSourcePaths( boolean includeMetadata, boolean includeChecksums )
     {
-        Predicate<String> metadata = asPredicate( includeMetadata ).or( getMetadataPredicate().negate() );
-        Predicate<String> checksums = asPredicate( includeChecksums ).or( getChecksumPredicate().negate() );
-        return getSourcePaths( includeMetadata, includeChecksums, metadata.and( checksums ) );
+        Predicate<String> metadata = asPredicate( includeMetadata ).or( isMetadataPredicate().negate() );
+        Predicate<String> checksums = asPredicate( includeChecksums ).or( isChecksumPredicate().negate() );
+        return getSourcePaths( metadata.and( checksums ) );
     }
 
-    private Set<String> getSourcePaths( boolean includeMetadata,
-                                        boolean includeChecksums, Predicate<String> filter )
+    private Set<String> getSourcePaths( Predicate<String> filter )
     {
-        PathsPromoteRequest promoteRequest = (PathsPromoteRequest)getPromoteRequest();
-        if ( !includeMetadata || !includeChecksums )
-        {
-            return promoteRequest.getPaths().stream().filter( filter ).collect( Collectors.toSet() );
-        }
-        return promoteRequest.getPaths();
+        return ((PathsPromoteRequest) getPromoteRequest()).getPaths().stream().filter( filter )
+                .collect( Collectors.toSet() );
     }
 
     public PromoteRequest getPromoteRequest()
