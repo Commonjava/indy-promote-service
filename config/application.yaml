@@ -36,35 +36,9 @@ promote:
 
 storage-service-api:
     mp-rest:
-        url: http://localhost
+        url: http://localhost:8081
         scope: javax.inject.Singleton
 
 kafka:
     bootstrap:
         servers: "localhost:9092"
-
-"%dev":
-    quarkus:
-        kubernetes-config:
-            enabled: false
-        log:
-            level: INFO
-            category:
-                "org.commonjava.service.promote":
-                    level: TRACE
-            console:
-                enable: true
-            file:
-                enable: true
-                path: "/tmp/indy-promote-service.log"
-                format: "%d{HH:mm:ss} %-5p [%c{2.}] (%t) %s%e%n"
-                rotation:
-                    max-backup-index: 5
-                    max-file-size: 10M
-    promote:
-        baseDir: "/tmp"
-        callbackUri: "callbackUri"
-
-    kafka:
-        bootstrap:
-            servers: "localhost:9092"
