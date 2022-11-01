@@ -18,7 +18,9 @@ package org.commonjava.service.promote.core;
 import org.apache.commons.lang3.StringUtils;
 import org.commonjava.cdi.util.weft.*;
 
+import org.commonjava.event.promote.PathsPromoteCompleteEvent;
 import org.commonjava.service.promote.callback.PromotionCallbackHelper;
+import org.commonjava.service.promote.client.kafka.KafkaEventDispatcher;
 import org.commonjava.service.promote.client.storage.FileCopyResult;
 import org.commonjava.service.promote.client.storage.StorageService;
 import org.commonjava.service.promote.config.PromoteConfig;
@@ -78,6 +80,9 @@ public class PromotionManager
 
     @Inject
     PromotionHelper promotionHelper;
+
+    @Inject
+    KafkaEventDispatcher kafkaEventDispatcher;
 
     @Inject
     @RestClient
@@ -346,9 +351,16 @@ public class PromotionManager
             {
                 logger.info( "Path promotion failed. Result: " + result );
             }
+            else
+            {
+                logger.info( "Path promotion succeeded. Result: " + result );
+                kafkaEventDispatcher.fireEvent( new PathsPromoteCompleteEvent(request.getSource().toString(),
+                        request.getTarget().toString(), result.getCompletedPaths() ) );
+            }
             return result;
         }
 
+        // Validation failed
         return new PathsPromoteResult( request, pending, emptySet(), emptySet(), validationResult );
     }
 

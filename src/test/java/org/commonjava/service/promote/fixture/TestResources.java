@@ -3,12 +3,16 @@ package org.commonjava.service.promote.fixture;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
+import io.smallrye.reactive.messaging.providers.connectors.InMemoryConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+
+import static org.commonjava.service.promote.client.kafka.KafkaEventDispatcher.CHANNEL_PROMOTE_COMPLETE;
 
 /**
  * This is to mock some HTTP resources. It is just another way to mock other services like storage.
@@ -26,7 +30,11 @@ public class TestResources
 
         wireMockServer.start();
 
-        return Collections.EMPTY_MAP;
+        // for Kafka tests
+        Map<String, String> env = new HashMap<>();
+        Map<String, String> props1 = InMemoryConnector.switchOutgoingChannelsToInMemory( CHANNEL_PROMOTE_COMPLETE );
+        env.putAll(props1);
+        return env;
     }
 
     /**
@@ -71,5 +79,6 @@ public class TestResources
         {
             wireMockServer.stop();
         }
+        InMemoryConnector.clear();
     }
 }
