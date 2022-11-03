@@ -1,0 +1,15 @@
+{
+  "name": "npm-pnc-builds",
+  "storeKeyPattern": "npm:hosted:pnc-builds",
+  "ruleNames": [
+    "npm-parsable-package-meta.groovy",
+    "npm-no-pre-existing-paths.groovy",
+    "npm-version-pattern.groovy"
+  ],
+  "validationParameters": {
+    "availableInStores": "npm:hosted:pnc-builds",
+    "validScope": "redhat",
+    "versionPattern": "\\d+\\.\\d+\\.\\d+(?:-[\\w_-]+)?-redhat-\\d{5}",
+    "scopedVersionPattern": "\\d+\\.\\d+\\.\\d+((-[\\w-]+)(\\.[\\w-]+)*)?"
+  }
+}
