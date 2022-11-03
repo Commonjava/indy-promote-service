@@ -1,0 +1,7 @@
+{
+  "name": "shared-imports",
+  "storeKeyPattern": "hosted:shared-imports",
+  "ruleNames": [
+  	"no-snapshot-paths.groovy"
+  ]
+}

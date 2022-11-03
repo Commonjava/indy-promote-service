@@ -43,11 +43,13 @@ import java.util.function.Supplier;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Tag( name = "Promote Administration", description = "Resource for managing configurations for promotion." )
-@Path( "/api/admin/promotion" )
+@Path( PromoteAdminResource.PROMOTION_ADMIN_API )
 @ApplicationScoped
 public class PromoteAdminResource
 {
     private final Logger logger = LoggerFactory.getLogger( getClass() );
+
+    public static final String PROMOTION_ADMIN_API = "/api/promotion/admin";
 
     @Inject
     PromoteValidationsManager validationsManager;

@@ -1,0 +1,14 @@
+{
+  "name": "maven-temporary-builds",
+  "storeKeyPattern": "maven:.*:temporary-builds",
+  "ruleNames": [
+    "parsable-pom.groovy",
+    "no-pre-existing-paths.groovy",
+    "project-version-pattern.groovy"
+  ],
+  "validationParameters": {
+    "availableInStores": "maven:group:temporary-builds",
+    "classifierAndTypeSet": "javadoc:jar, sources:jar",
+    "versionPattern": "\\d+\\.\\d+\\.\\d+\\.(?:[\\w_-]+-)?(?:(?:temporary)|(?:t\\d{8}-\\d{6}-\\d{3}))-redhat-\\d+"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "npm-temporary-builds",
+  "storeKeyPattern": "npm:hosted:temporary-builds",
+  "ruleNames": [
+    "npm-parsable-package-meta.groovy",
+    "npm-no-pre-existing-paths.groovy",
+    "npm-version-pattern.groovy"
+  ],
+  "validationParameters": {
+    "availableInStores": "npm:hosted:temporary-builds",
+    "validScope": "redhat",
+    "versionPattern": "\\d+\\.\\d+\\.\\d+[.-](?:.+-)?(?:temporary)-redhat-\\d{5}",
+    "scopedVersionPattern": "\\d+\\.\\d+\\.\\d+-([\\w-]+\\.)*(temporary|t\\d{8}-\\d{6}-\\d{3})\\.\\d+"
+  }
+}
