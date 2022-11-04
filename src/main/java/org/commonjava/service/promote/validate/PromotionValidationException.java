@@ -15,37 +15,23 @@
  */
 package org.commonjava.service.promote.validate;
 
-import org.commonjava.service.promote.exception.PromotionException;
-import org.commonjava.service.promote.model.PromoteRequest;
-import org.commonjava.service.promote.model.StoreKey;
-
-import java.io.IOException;
-
-public class PromotionValidationException
-    extends PromotionException
+public class PromotionValidationException extends Exception
 {
+    private String ruleName;
+
+    public PromotionValidationException() {
+    }
 
     public PromotionValidationException(String s, Exception e) {
         super(s, e);
     }
 
-    public PromotionValidationException(String s, Exception e, StoreKey source, String message) {
-        super(s, e, source, message);
-    }
-
-    public PromotionValidationException(String s, Exception e, String scriptName, String simpleName, String message) {
+    public PromotionValidationException(String s, Exception e, String ruleName) {
         super(s, e);
+        this.ruleName = ruleName;
     }
 
     public PromotionValidationException(String s) {
-        super(s, null);
-    }
-
-    public PromotionValidationException(String s, Exception e, String name, PromoteRequest request, Exception e1) {
-        super(s, e);
-    }
-
-    public PromotionValidationException(String s, String verifyStores) {
-        super(s, null);
+        super(s);
     }
 }

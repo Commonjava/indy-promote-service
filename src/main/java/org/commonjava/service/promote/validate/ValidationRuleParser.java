@@ -53,10 +53,10 @@ public class ValidationRuleParser
         this.objectMapper = objectMapper;
     }
 
-    public ValidationRuleMapping parseRule( final File script )
+    public ValidationRuleMapping parseRule( final File script, final String ruleName )
             throws Exception
     {
-        String spec = null;
+        String spec;
         try
         {
             spec = FileUtils.readFileToString( script, defaultCharset() );
@@ -72,10 +72,10 @@ public class ValidationRuleParser
             spec = STANDARD_IMPORTS + spec;
         }
 
-        return parseRule( spec, script.getName() );
+        return parseRule( spec, ruleName );
     }
 
-    public ValidationRuleMapping parseRule( final String spec, final String scriptName )
+    public ValidationRuleMapping parseRule( final String spec, final String ruleName )
             throws PromotionValidationException
     {
         if ( spec == null )
@@ -83,7 +83,7 @@ public class ValidationRuleParser
             return null;
         }
 
-        logger.trace( "Parsing rule: {}, content:\n{}", scriptName, spec );
+        logger.trace( "Parsing rule: {}, content:\n{}", ruleName, spec );
 
         ValidationRule rule;
         try
@@ -95,13 +95,12 @@ public class ValidationRuleParser
         catch ( final Exception e )
         {
             throw new PromotionValidationException(
-                    "Cannot load validation rule from: {} as an instance of: {}. Reason: {}", e, scriptName,
-                    ValidationRule.class.getSimpleName(), e.getMessage() );
+                    "Cannot load validation rule from: {} as an instance of: {}. Reason: {}", e, ruleName );
         }
 
         if ( rule != null )
         {
-            return new ValidationRuleMapping( scriptName, spec, rule );
+            return new ValidationRuleMapping( ruleName, spec, rule );
         }
 
         return null;
@@ -146,7 +145,7 @@ public class ValidationRuleParser
         {
             throw new PromotionValidationException(
                     "Cannot load validation rule-set from: {} as an instance of: {}. Reason: {}", e,
-                    scriptName, ValidationRule.class.getSimpleName(), e.getMessage() );
+                    scriptName );
         }
     }
 

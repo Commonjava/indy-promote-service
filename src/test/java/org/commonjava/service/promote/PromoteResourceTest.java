@@ -1,6 +1,5 @@
 package org.commonjava.service.promote;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -29,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @QuarkusTest
 public class PromoteResourceTest
 {
-    private static final String PROMOTE_PATH = "/api/promotion/paths/promote",
+    public static final String PROMOTE_PATH = "/api/promotion/paths/promote",
         ROLLBACK_PATH = "/api/promotion/paths/rollback";
 
     private ObjectMapper mapper = new ObjectMapper();

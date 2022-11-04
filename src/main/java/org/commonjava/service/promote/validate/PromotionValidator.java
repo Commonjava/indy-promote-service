@@ -15,30 +15,25 @@
  */
 package org.commonjava.service.promote.validate;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
 import org.commonjava.cdi.util.weft.DrainingExecutorCompletionService;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.cdi.util.weft.WeftExecutorService;
 import org.commonjava.cdi.util.weft.WeftManaged;
 
-import org.commonjava.service.promote.client.repository.ArtifactStore;
-import org.commonjava.service.promote.client.repository.RepositoryService;
 import org.commonjava.service.promote.config.PromoteConfig;
+import org.commonjava.service.promote.core.ContentDigester;
 import org.commonjava.service.promote.model.*;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
@@ -82,14 +77,6 @@ public class PromotionValidator
     {
     }
 
-    public PromotionValidator( PromoteValidationsManager validationsManager, PromotionValidationTools validationTools,
-                               WeftExecutorService validateService )
-    {
-        this.validationsManager = validationsManager;
-        this.validationTools = validationTools;
-        this.validateService = validateService;
-    }
-
     public ValidationResult validate(PromoteRequest request, String baseUrl )
             throws PromotionValidationException
     {
@@ -115,12 +102,12 @@ public class PromotionValidator
             result.setRuleSet( set.getName() );
             //RequestContextHelper.setContext( PROMOTION_VALIDATION_RULE_SET, set.getName() );
 
-            logger.debug( "Running validation rule-set for promotion: {}", set.getName() );
             List<String> ruleNames = set.getRuleNames();
+            logger.debug( "Running promotion validation rule-set: {}, rules: {}", set.getName(), ruleNames );
             if ( ruleNames != null && !ruleNames.isEmpty() )
             {
 //                final ArtifactStore store = getRequestStore( request, baseUrl );
-                final ValidationRequest req = new ValidationRequest( request, set, validationTools );
+                final ValidationRequest validationRequest = new ValidationRequest( request, set, validationTools );
                 try
                 {
                     DrainingExecutorCompletionService<Exception> svc =
@@ -134,7 +121,7 @@ public class PromotionValidator
                                 Exception err = null;
                                 try
                                 {
-                                    executeValidationRule( ruleRef, req, result, request );
+                                    executeValidationRule( ruleRef, validationRequest, result, request );
                                 }
                                 catch ( Exception e )
                                 {
@@ -213,11 +200,11 @@ public class PromotionValidator
         }
     }
 
-    private void executeValidationRule( final String ruleRef, final ValidationRequest req,
+    private void executeValidationRule( final String ruleRef, final ValidationRequest validationRequest,
                                         final ValidationResult result, final PromoteRequest request )
             throws PromotionValidationException
     {
-        String ruleName = new File( ruleRef ).getName();
+        String ruleName = validationsManager.normalizeRuleName( new File( ruleRef ).getName() );
         ValidationRuleMapping rule = validationsManager.getRuleMappingNamed( ruleName );
         if ( rule != null )
         {
@@ -226,7 +213,7 @@ public class PromotionValidator
             {
                 try
                 {
-                    error = rule.getRule().validate( req );
+                    error = rule.getRule().validate( validationRequest );
                 }
                 catch ( Exception e )
                 {
@@ -253,8 +240,9 @@ public class PromotionValidator
         {
             throw (PromotionValidationException) e;
         }
-        throw new PromotionValidationException( "Failed to run validation rule: {} for request: {}. Reason: {}", e,
-                rule.getName(), request, e );
+        throw new PromotionValidationException(
+                String.format( "Failed to run validation rule: %s, Reason: %s", rule.getName(), e.getMessage()),
+                e, rule.getName() );
     }
 
 /*

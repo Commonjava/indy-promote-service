@@ -93,7 +93,7 @@ public class PromotionValidationTools
     @RestClient
     StorageService storageService;
 
-    protected PromotionValidationTools()
+    public PromotionValidationTools()
     {
     }
 
@@ -125,10 +125,10 @@ public class PromotionValidationTools
     public StoreKey[] getValidationStoreKeys( final ValidationRequest request, final boolean includeSource )
             throws PromotionValidationException
     {
-        String verifyStores = request.getValidationParameter( PromotionValidationTools.AVAILABLE_IN_STORES );
+        String verifyStores = request.getValidationParameter( AVAILABLE_IN_STORES );
         if ( verifyStores == null )
         {
-            verifyStores = request.getValidationParameter( PromotionValidationTools.AVAILABLE_IN_STORE_KEY );
+            verifyStores = request.getValidationParameter( AVAILABLE_IN_STORE_KEY );
         }
 
         Logger logger = LoggerFactory.getLogger( getClass() );
@@ -156,8 +156,7 @@ public class PromotionValidationTools
 
             if ( extras.isEmpty() )
             {
-                throw new PromotionValidationException( "No valid StoreKey instances could be parsed from '%s'",
-                        verifyStores );
+                throw new PromotionValidationException( "No valid instances could be parsed from " + verifyStores );
             }
             else
             {
@@ -558,14 +557,6 @@ public class PromotionValidationTools
         runParallelAndWait( Arrays.asList( array ), closure, logger );
     }
 
-    public <K, V> void paralleledEach( Map<K, V> map, Closure closure )
-    {
-        Set<Map.Entry<K, V>> entries = map.entrySet();
-        final Logger logger = LoggerFactory.getLogger( this.getClass() );
-        logger.trace( "Exe parallel on map {} with closure {}", entries, closure );
-        runParallelAndWait( entries, closure, logger );
-    }
-
     public <T> void paralleledInBatch( Collection<T> collection, Closure closure )
     {
         int batchSize = getParalleledBatchSize( collection.size(), ruleParallelExecutor.getCorePoolSize() );
@@ -579,15 +570,6 @@ public class PromotionValidationTools
         int batchSize = getParalleledBatchSize( array.length, ruleParallelExecutor.getCorePoolSize() );
         logger.trace( "Exe parallel on array {} with closure {} in batch {}", array, closure, batchSize );
         Collection<Collection<T>> batches = batch( Arrays.asList( array ), batchSize );
-        runParallelInBatchAndWait( batches, closure, logger );
-    }
-
-    public <K, V> void paralleledInBatch( Map<K, V> map, Closure closure )
-    {
-        int batchSize = getParalleledBatchSize( map.size(), ruleParallelExecutor.getCorePoolSize() );
-        Set<Map.Entry<K, V>> entries = map.entrySet();
-        logger.trace( "Exe parallel on map {} with closure {} in batch {}", entries, closure, batchSize );
-        Collection<Collection<Map.Entry<K, V>>> batches = batch( entries, batchSize );
         runParallelInBatchAndWait( batches, closure, logger );
     }
 
@@ -677,10 +659,4 @@ public class PromotionValidationTools
         Arrays.asList( array ).forEach( closure::call );
     }
 
-    public <K, V> void forEach( Map<K, V> map, Closure closure )
-    {
-        Set<Map.Entry<K, V>> entries = map.entrySet();
-        logger.trace( "Exe on map {} with closure {}", entries, closure );
-        entries.forEach( closure::call );
-    }
 }

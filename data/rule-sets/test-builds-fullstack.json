@@ -1,0 +1,14 @@
+{
+  "name": "maven-test-builds-fullstack",
+  "storeKeyPattern": "maven:[^:]+:test-builds-fullstack",
+  "ruleNames": [
+    "parsable-pom.groovy",
+    "no-pre-existing-paths.groovy",
+    "no-snapshots-paths.groovy",
+    "project-version-pattern.groovy"
+  ],
+  "validationParameters": {
+    "classifierAndTypeSet": "javadoc:jar, sources:jar",
+    "versionPattern": "\\d+\\.\\d+\\.\\d+\\.(?:[\\w_-]+-)?redhat-\\d+"
+  }
+}

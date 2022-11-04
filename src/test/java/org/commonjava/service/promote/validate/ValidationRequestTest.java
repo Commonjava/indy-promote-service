@@ -1,12 +1,12 @@
 package org.commonjava.service.promote.validate;
 
 import org.commonjava.service.promote.model.PathsPromoteRequest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ValidationRequestTest {
 
