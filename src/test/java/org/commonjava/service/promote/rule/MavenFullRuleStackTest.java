@@ -20,23 +20,18 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.response.Response;
 
-import org.commonjava.service.promote.client.storage.StorageService;
 import org.commonjava.service.promote.fixture.TestResources;
 import org.commonjava.service.promote.model.*;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -69,14 +64,13 @@ public class MavenFullRuleStackTest
     final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
-    @RestClient
-    StorageService storageService;
+    RuleTestHelper ruleTestHelper;
 
     private ObjectMapper mapper = new ObjectMapper();
 
     private static final String RULE = "no-pre-existing-paths";
 
-    private static final String PREFIX = "no-pre-existing-paths/";
+    private final String resourceDir = "no-pre-existing-paths/";
 
     private final StoreKey host1 = new StoreKey( "maven", StoreType.hosted, "build-1" );
 
@@ -94,8 +88,8 @@ public class MavenFullRuleStackTest
         // Deploy different files in src and target to make the 'no-pre-existing-paths' report errors
         paths.forEach( path -> {
             try {
-                deployResource( host1, path, PREFIX + "valid.pom.xml" );
-                deployResource( target, path, PREFIX + "invalid.pom.xml" );
+                ruleTestHelper.deployResource( host1, path, resourceDir + "valid.pom.xml" );
+                ruleTestHelper.deployResource( target, path, resourceDir + "invalid.pom.xml" );
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -127,16 +121,7 @@ public class MavenFullRuleStackTest
 
         //System.out.println(">>>\n" + validatorErrors);
         String errors = validatorErrors.get( RULE );
-        assertThat( errors, notNullValue() ); // TODO: fix this. storage file not in right place
-        //assertThat( errors.contains( deploy ), equalTo( true ) );
-    }
-
-    private void deployResource(StoreKey repo, String path, String resourcePath) throws IOException
-    {
-        try (InputStream stream = this.getClass().getClassLoader().getResourceAsStream( resourcePath ))
-        {
-            storageService.put(repo.toString(), path, stream);
-        }
+        assertThat( errors, notNullValue() );
     }
 
 }
