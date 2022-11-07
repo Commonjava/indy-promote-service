@@ -1,7 +1,7 @@
 package org.commonjava.service.promote.core;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.commonjava.service.promote.client.storage.StorageService;
+import org.commonjava.service.promote.client.content.ContentService;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.util.ContentDigest;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -21,14 +21,14 @@ public class ContentDigester {
 
     @Inject
     @RestClient
-    StorageService storageService;
+    ContentService contentService;
 
     public ContentDigester() {
     }
 
     public String digest(StoreKey key, String path, ContentDigest digest) throws IOException {
         // retrieve the checksum file if exists
-        Response resp = storageService.retrieve(key.toString(), path + digest.getFileExt());
+        Response resp = contentService.retrieve(key.getPackageType(), key.getType().getName(), key.getName(), path + digest.getFileExt());
         if ( resp.getStatus() == SC_OK )
         {
             String content = resp.readEntity(String.class);
@@ -38,7 +38,7 @@ public class ContentDigester {
             }
         }
         // retrieve the raw file and calculate checksum
-        resp = storageService.retrieve(key.toString(), path);
+        resp = contentService.retrieve(key.getPackageType(), key.getType().getName(), key.getName(), path);
         if ( resp.getStatus() == SC_OK )
         {
             try (InputStream is = resp.readEntity( InputStream.class ))

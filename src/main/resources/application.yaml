@@ -39,6 +39,11 @@ storage-service-api:
         url: http://localhost
         scope: javax.inject.Singleton
 
+content-service-api:
+    mp-rest:
+        url: http://localhost
+        scope: javax.inject.Singleton
+
 kafka:
     bootstrap:
         servers: "localhost:9092"

@@ -24,13 +24,11 @@ import org.commonjava.cdi.util.weft.WeftExecutorService;
 import org.commonjava.cdi.util.weft.WeftManaged;
 
 import org.commonjava.atlas.maven.ident.ref.ArtifactRef;
-import org.commonjava.atlas.maven.ident.ref.ProjectRef;
-import org.commonjava.atlas.maven.ident.ref.ProjectVersionRef;
 import org.commonjava.atlas.maven.ident.util.ArtifactPathInfo;
 import org.commonjava.indy.pkg.npm.content.PackagePath;
 import org.commonjava.indy.pkg.npm.model.PackageMetadata;
 
-import org.commonjava.service.promote.client.storage.StorageService;
+import org.commonjava.service.promote.client.content.ContentService;
 import org.commonjava.service.promote.config.PromoteConfig;
 import org.commonjava.service.promote.core.ContentDigester;
 import org.commonjava.service.promote.model.StoreKey;
@@ -39,13 +37,9 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.slf4j.MDC;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
@@ -91,7 +85,7 @@ public class PromotionValidationTools
 
     @Inject
     @RestClient
-    StorageService storageService;
+    ContentService contentService;
 
     public PromotionValidationTools()
     {
@@ -275,21 +269,21 @@ public class PromotionValidationTools
         {
             throw new Exception( String.format("Invalid artifact path: %s. Could not parse ArtifactRef from path.", path) );
         }
-        String srcFilesystem = request.getSource().toString();
-        Response resp = storageService.retrieve(srcFilesystem, path);
+        StoreKey src = request.getSource();
+        Response resp = contentService.retrieve(src.getPackageType(), src.getType().getName(), src.getName(), path);
         if ( resp.getStatus() == SC_OK ) {
             MavenXpp3Reader reader = new MavenXpp3Reader();
             reader.read(resp.readEntity(InputStream.class));
             return;
         }
-        throw new Exception( String.format("File not exist, srcFilesystem: %s, path: %s", srcFilesystem, path) );
+        throw new Exception( String.format("File not exist, srcFilesystem: %s, path: %s", src, path) );
     }
 
     public PackageMetadata readLocalPackageJson(final String path, final ValidationRequest request )
             throws Exception
     {
-        String srcFilesystem = request.getSource().toString();
-        Response resp = storageService.retrieve(srcFilesystem, path);
+        StoreKey src = request.getSource();
+        Response resp = contentService.retrieve(src.getPackageType(), src.getType().getName(), src.getName(), path);
         if ( resp.getStatus() == SC_OK ) {
             try (InputStream is = resp.readEntity( InputStream.class ))
             {
@@ -472,10 +466,10 @@ public class PromotionValidationTools
     }
 */
 
-    public boolean exists( final StoreKey storeKey, final String path )
+    public boolean exists( final StoreKey store, final String path )
             throws Exception
     {
-        Response resp = storageService.exists(storeKey.toString(), path);
+        Response resp = contentService.exists(store.getPackageType(), store.getType().getName(), store.getName(), path);
         if ( resp.getStatus() == SC_OK )
         {
             return true;

@@ -6,6 +6,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -24,4 +25,8 @@ public class RuleTestHelper {
         }
     }
 
+    void deployContent(StoreKey repo, String path, String content)
+    {
+        storageService.put(repo.toString(), path, new ByteArrayInputStream(content.getBytes()));
+    }
 }

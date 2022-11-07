@@ -16,36 +16,32 @@
 package org.commonjava.service.promote.rule;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.response.Response;
 
-import org.commonjava.service.promote.fixture.TestResources;
 import org.commonjava.service.promote.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.commonjava.service.promote.PromoteResourceTest.PROMOTE_PATH;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * When <br />
  *
  *  <ol>
- *    <li>Two hosted repositories have same path deployed</li>
+ *    <li>both source and target have a same path deployed</li>
+ *    <li>source has one other path deployed</li>
  *    <li>promotion validation rule-set that includes no-pre-existing-paths.groovy</li>
  *    <li>path promotion request posted</li>
  *  </ol>
@@ -53,55 +49,42 @@ import static org.junit.jupiter.api.Assertions.*;
  *  Then <br />
  *
  *  <ol>
- *    <li>the no-pre-existing-paths.groovy rule should be triggered with validation error</li>
+ *    <li>the no-pre-existing-paths.groovy rule should be triggered with validation error that only has one error</li>
  *  </ol>
  *
  */
-@QuarkusTestResource( TestResources.class )
 @QuarkusTest
-public class MavenFullRuleStackTest
+public class NoPreExistingPaths_RuleTest
 {
-    final Logger logger = LoggerFactory.getLogger( getClass() );
-
     @Inject
     RuleTestHelper ruleTestHelper;
 
     private ObjectMapper mapper = new ObjectMapper();
 
+    private final StoreKey source = new StoreKey( "maven", StoreType.hosted, "build-r" );
+
+    private final StoreKey target = new StoreKey( "maven", StoreType.hosted, "test-builds" );;
+
     private static final String RULE = "no-pre-existing-paths";
 
     private final String resourceDir = "no-pre-existing-paths/";
 
-    private final StoreKey host1 = new StoreKey( "maven", StoreType.hosted, "build-1" );
-
-    private final StoreKey target = new StoreKey( "maven", StoreType.hosted, "test-builds-fullstack" );;
-
-    private final List<String> paths = Arrays.asList(
-            "org/foo/valid/1.1.0.Final-redhat-1/valid-1.1.0.Final-redhat-1.pom",
-            "org/foo/valid/1.1.0.Final-redhat-1/valid-1.1.0.Final-redhat-1.jar",
-            "org/foo/valid/1.1.0.Final-redhat-1/valid-1.1.0.Final-redhat-1-sources.jar",
-            "org/foo/valid/1.1.0.Final-redhat-1/valid-1.1.0.Final-redhat-1-javadoc.jar" );
+    private String invalid = "org/foo/invalid/1/invalid-1.pom";
+    private String valid = "org/foo/valid/1.1/valid-1.1.pom";
 
     @BeforeEach
-    public void prepare()
+    public void prepare() throws IOException
     {
-        // Deploy different files in src and target to make the 'no-pre-existing-paths' report errors
-        paths.forEach( path -> {
-            try {
-                ruleTestHelper.deployResource( host1, path, resourceDir + "valid.pom.xml" );
-                ruleTestHelper.deployResource( target, path, resourceDir + "invalid.pom.xml" );
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        ruleTestHelper.deployContent( target, invalid, "This is a test" );
+
+        ruleTestHelper.deployResource( source, invalid, resourceDir + "invalid.pom.xml");
+        ruleTestHelper.deployResource( source, valid, resourceDir + "valid.pom.xml" );
     }
 
     @Test
     public void run() throws Exception
     {
-        PathsPromoteRequest promoteRequest = new PathsPromoteRequest( host1, target );
-
-        // Promote
+        Object promoteRequest = new PathsPromoteRequest( source, target ).setPurgeSource( true );
         Response response =
                 given().when()
                         .body(mapper.writeValueAsString(promoteRequest))
@@ -113,15 +96,18 @@ public class MavenFullRuleStackTest
         //System.out.println(">>>\n" + content);
         PathsPromoteResult result = mapper.readValue( content, PathsPromoteResult.class );
         assertNotNull( result );
-        assertNotNull( result.getError() );
 
         ValidationResult validations = result.getValidations();
+        assertThat( validations, notNullValue() );
+
         Map<String, String> validatorErrors = validations.getValidatorErrors();
         assertThat( validatorErrors, notNullValue() );
 
-        //System.out.println(">>>\n" + validatorErrors);
+        //System.out.println(validatorErrors);
         String errors = validatorErrors.get( RULE );
         assertThat( errors, notNullValue() );
+        assertThat( errors.contains( valid ), equalTo( false ) );
+        assertThat( errors.contains( invalid ), equalTo( true ) );
     }
 
 }

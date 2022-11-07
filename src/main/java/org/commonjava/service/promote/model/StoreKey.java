@@ -34,14 +34,6 @@ public final class StoreKey
         this.name = name;
     }
 
-    @Deprecated
-    public StoreKey( final StoreType type, final String name )
-    {
-        this.packageType = MAVEN_PKG_KEY;
-        this.type = type;
-        this.name = name;
-    }
-
     public String getPackageType()
     {
         return packageType;
