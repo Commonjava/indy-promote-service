@@ -34,6 +34,9 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.commonjava.service.promote.PromoteResourceTest.PROMOTE_PATH;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ *
+ */
 @QuarkusTest
 public class NoPreExistingPaths_IdempotentTest
 {

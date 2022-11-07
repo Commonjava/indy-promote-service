@@ -46,6 +46,11 @@ public enum StoreType
         return singular;
     }
 
+    public String getName()
+    {
+        return singularEndpointName();
+    }
+
     public boolean isWritable()
     {
         return writable;
