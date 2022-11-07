@@ -49,7 +49,7 @@ public class ScriptEngine
             throws Exception
     {
         final Class<?> clazz = groovyClassloader.parseClass( script );
-        Object instance = clazz.newInstance();
+        Object instance = clazz.getDeclaredConstructor().newInstance();
 
         Logger logger = LoggerFactory.getLogger( getClass() );
         logger.info( "Parsed: {} (type: {}, interfaces: {})", instance, instance.getClass(),

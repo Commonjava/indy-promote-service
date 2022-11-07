@@ -18,10 +18,7 @@ package org.commonjava.service.promote.validate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.commonjava.service.promote.model.ValidationRuleSet;
 import org.commonjava.service.promote.util.ScriptEngine;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -29,17 +26,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ValidationRuleParserTest
 {
-    @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
-
-    private ValidationRuleParser parser;
-
-    @Before
-    public void setUp()
-            throws Exception
-    {
-        parser = new ValidationRuleParser( new ScriptEngine(), new ObjectMapper() );
-    }
+    private ValidationRuleParser parser = new ValidationRuleParser( new ScriptEngine(), new ObjectMapper() );
 
     @Test
     public void testRuleSetParseAndMatchOnStoreKey()

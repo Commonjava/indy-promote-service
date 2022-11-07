@@ -18,7 +18,7 @@ package org.commonjava.service.promote.validate;
 import groovy.lang.Closure;
 import org.commonjava.service.promote.config.PromoteConfig;
 import org.commonjava.service.promote.config.TestPromoteConfig;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PromotionValidationToolsTest
 {

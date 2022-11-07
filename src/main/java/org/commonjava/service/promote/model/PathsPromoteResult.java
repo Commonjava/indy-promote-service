@@ -51,8 +51,6 @@ public class PathsPromoteResult extends AbstractPromoteResult<PathsPromoteResult
         this.pendingPaths = pending;
         this.completedPaths = complete;
         this.skippedPaths = skipped;
-        this.error = error;
-        this.validations = validations;
     }
 
     public PathsPromoteResult( final PathsPromoteRequest request, final Set<String> pending, final Set<String> complete,

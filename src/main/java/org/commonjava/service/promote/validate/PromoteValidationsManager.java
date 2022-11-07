@@ -101,7 +101,7 @@ public class PromoteValidationsManager
         for (final String f : defaultRules) {
             logger.info("Load default validation rule: {}", f );
             String script = getResourceRuleAsString( f );
-            final ValidationRuleMapping rule = ruleParser.parseRule(script, f.replace(".groovy", ""));
+            final ValidationRuleMapping rule = ruleParser.parseRule(script, normalizeRuleName(f));
             if (rule != null) {
                 ruleMappings.put(rule.getName(), rule);
             }
@@ -117,13 +117,18 @@ public class PromoteValidationsManager
             if (scripts.length > 0) {
                 for (final File script : scripts) {
                     logger.info("Load validation rule from: {}", script);
-                    final ValidationRuleMapping rule = ruleParser.parseRule(script);
+                    final ValidationRuleMapping rule = ruleParser.parseRule(script, normalizeRuleName(script.getName()));
                     if (rule != null) {
                         ruleMappings.put(rule.getName(), rule);
                     }
                 }
             }
         }
+    }
+
+    public String normalizeRuleName(String name)
+    {
+        return name.replace(".groovy", "");
     }
 
     private List<String> getResourceRuleFiles( String path ) throws IOException {

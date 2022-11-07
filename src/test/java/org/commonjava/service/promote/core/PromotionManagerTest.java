@@ -15,37 +15,22 @@
  */
 package org.commonjava.service.promote.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.commonjava.cdi.util.weft.PoolWeftExecutorService;
-import org.commonjava.cdi.util.weft.WeftExecutorService;
 
-import org.commonjava.indy.pkg.npm.model.PackageMetadata;
 import org.commonjava.service.promote.client.storage.StorageService;
-import org.commonjava.service.promote.config.PromoteConfig;
-import org.commonjava.service.promote.config.TestPromoteConfig;
-import org.commonjava.service.promote.core.ContentDigester;
-import org.commonjava.service.promote.core.PromotionManager;
 import org.commonjava.service.promote.fixture.TestResources;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.PathsPromoteResult;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.StoreType;
-import org.commonjava.service.promote.util.PromoteDataFileManager;
-import org.commonjava.service.promote.util.ScriptEngine;
-import org.commonjava.service.promote.validate.PromoteValidationsManager;
-import org.commonjava.service.promote.validate.PromotionValidationTools;
-import org.commonjava.service.promote.validate.PromotionValidator;
-import org.commonjava.service.promote.validate.ValidationRuleParser;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
@@ -54,12 +39,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.util.Set;
-import java.util.concurrent.*;
 
 import static org.apache.http.HttpStatus.SC_OK;
-import static org.commonjava.service.promote.handler.MockStorageService.mockedStorageRootDir;
+import static org.commonjava.service.promote.fixture.MockStorageService.mockedStorageRootDir;
 import static org.commonjava.service.promote.model.pkg.MavenPackageTypeDescriptor.MAVEN_PKG_KEY;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;

@@ -1,4 +1,4 @@
-package org.commonjava.service.promote.handler;
+package org.commonjava.service.promote.fixture;
 
 import io.quarkus.test.Mock;
 import org.apache.http.HttpStatus;
@@ -56,6 +56,7 @@ public class MockStorageService implements StorageService
     public Response retrieve(String filesystem, String path) {
         String filesystemDir = filesystem.replaceAll(":", "/");
         File file = Paths.get(mockedStorageRootDir, filesystemDir, path ).toFile();
+        //logger.debug("Retrieve file: {}, exist: {}", file.getAbsoluteFile(), file.isFile());
         try {
             return Response.status( SC_OK ).entity(new FileInputStream(file)).build();
         } catch (FileNotFoundException e) {
@@ -112,6 +113,7 @@ public class MockStorageService implements StorageService
                         copyFile(request.getSourceFilesystem(), request.getTargetFilesystem(), path);
                     } catch (IOException e) {
                         FileCopyResult result = new FileCopyResult(false);
+                        e.printStackTrace();
                         result.setMessage("File copy failed: " + e.getMessage());
                         return Response.status(SC_OK).entity(result).build();
                     }

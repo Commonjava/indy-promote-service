@@ -15,15 +15,13 @@
  */
 package org.commonjava.service.promote.exception;
 
-import org.commonjava.service.promote.model.StoreKey;
-
 public class PromotionException extends Exception
 {
-    public PromotionException(String s, Exception e) {
-        super( s, e );
+    public PromotionException(String message) {
+        super( message );
     }
 
-    public PromotionException(String s, Exception e, StoreKey source, String message) {
-
+    public PromotionException(String message, Exception cause) {
+        super( message, cause );
     }
 }
