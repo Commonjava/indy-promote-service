@@ -280,6 +280,7 @@ public class PromotionValidationTools
         if ( resp.getStatus() == SC_OK ) {
             MavenXpp3Reader reader = new MavenXpp3Reader();
             reader.read(resp.readEntity(InputStream.class));
+            return;
         }
         throw new Exception( String.format("File not exist, srcFilesystem: %s, path: %s", srcFilesystem, path) );
     }

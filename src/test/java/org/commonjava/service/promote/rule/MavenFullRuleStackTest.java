@@ -24,6 +24,7 @@ import org.commonjava.service.promote.client.storage.StorageService;
 import org.commonjava.service.promote.fixture.TestResources;
 import org.commonjava.service.promote.model.*;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,40 +78,33 @@ public class MavenFullRuleStackTest
 
     private static final String PREFIX = "no-pre-existing-paths/";
 
-    /* @formatter:off */
-    private static final String[] RULES = {
-        "parsable-pom.groovy",
-        "no-pre-existing-paths.groovy",
-        "no-snapshots-paths.groovy",
-        "project-version-pattern.groovy"
-    };
-    /* @formatter:on */
+    private final StoreKey host1 = new StoreKey( "maven", StoreType.hosted, "build-1" );
 
-    private StoreKey host1 = new StoreKey( "maven", StoreType.hosted, "build-1" );
+    private final StoreKey target = new StoreKey( "maven", StoreType.hosted, "test-builds-fullstack" );;
 
-    private StoreKey target = new StoreKey( "maven", StoreType.hosted, "test-builds-fullstack" );;
+    private final List<String> paths = Arrays.asList(
+            "org/foo/valid/1.1.0.Final-redhat-1/valid-1.1.0.Final-redhat-1.pom",
+            "org/foo/valid/1.1.0.Final-redhat-1/valid-1.1.0.Final-redhat-1.jar",
+            "org/foo/valid/1.1.0.Final-redhat-1/valid-1.1.0.Final-redhat-1-sources.jar",
+            "org/foo/valid/1.1.0.Final-redhat-1/valid-1.1.0.Final-redhat-1-javadoc.jar" );
+
+    @BeforeEach
+    public void prepare()
+    {
+        // Deploy different files in src and target to make the 'no-pre-existing-paths' report errors
+        paths.forEach( path -> {
+            try {
+                deployResource( host1, path, PREFIX + "valid.pom.xml" );
+                deployResource( target, path, PREFIX + "invalid.pom.xml" );
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
     @Test
     public void run() throws Exception
     {
-        List<String> paths = Arrays.asList(
-                "org/foo/valid/1.1.0.Final-redhat-1/valid-1.1.0.Final-redhat-1.pom",
-                "org/foo/valid/1.1.0.Final-redhat-1/valid-1.1.0.Final-redhat-1.jar",
-                "org/foo/valid/1.1.0.Final-redhat-1/valid-1.1.0.Final-redhat-1-sources.jar",
-                "org/foo/valid/1.1.0.Final-redhat-1/valid-1.1.0.Final-redhat-1-javadoc.jar" );
-
-        Stream.of( host1, target ).forEach( (repo)-> paths.forEach( path -> {
-            try
-            {
-                deployResource( repo, path, PREFIX + "valid.pom.xml" );
-            }
-            catch ( Exception e )
-            {
-                e.printStackTrace();
-                fail( "Failed to deploy: " + path + " to: " + repo );
-            }
-        } ));
-
         PathsPromoteRequest promoteRequest = new PathsPromoteRequest( host1, target );
 
         // Promote
@@ -131,7 +125,7 @@ public class MavenFullRuleStackTest
         Map<String, String> validatorErrors = validations.getValidatorErrors();
         assertThat( validatorErrors, notNullValue() );
 
-        System.out.println(">>>\n" + validatorErrors);
+        //System.out.println(">>>\n" + validatorErrors);
         String errors = validatorErrors.get( RULE );
         assertThat( errors, notNullValue() ); // TODO: fix this. storage file not in right place
         //assertThat( errors.contains( deploy ), equalTo( true ) );

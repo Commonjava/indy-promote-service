@@ -56,6 +56,7 @@ public class MockStorageService implements StorageService
     public Response retrieve(String filesystem, String path) {
         String filesystemDir = filesystem.replaceAll(":", "/");
         File file = Paths.get(mockedStorageRootDir, filesystemDir, path ).toFile();
+        //logger.debug("Retrieve file: {}, exist: {}", file.getAbsoluteFile(), file.isFile());
         try {
             return Response.status( SC_OK ).entity(new FileInputStream(file)).build();
         } catch (FileNotFoundException e) {
