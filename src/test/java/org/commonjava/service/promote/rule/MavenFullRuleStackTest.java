@@ -99,21 +99,7 @@ public class MavenFullRuleStackTest
     @Test
     public void run() throws Exception
     {
-        PathsPromoteRequest promoteRequest = new PathsPromoteRequest( host1, target );
-
-        // Promote
-        Response response =
-                given().when()
-                        .body(mapper.writeValueAsString(promoteRequest))
-                        .header("Content-Type", APPLICATION_JSON)
-                        .post(PROMOTE_PATH);
-
-        assertEquals( 200, response.statusCode() );
-        String content = response.getBody().asString();
-        //System.out.println(">>>\n" + content);
-        PathsPromoteResult result = mapper.readValue( content, PathsPromoteResult.class );
-        assertNotNull( result );
-        assertNotNull( result.getError() );
+        PathsPromoteResult result = ruleTestHelper.doPromote( new PathsPromoteRequest( host1, target ) );
 
         ValidationResult validations = result.getValidations();
         Map<String, String> validatorErrors = validations.getValidatorErrors();
