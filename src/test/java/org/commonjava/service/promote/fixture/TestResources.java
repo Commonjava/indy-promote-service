@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Collections.emptyMap;
 import static org.commonjava.service.promote.client.kafka.KafkaEventDispatcher.CHANNEL_PROMOTE_COMPLETE;
 
 /**
@@ -27,14 +28,17 @@ public class TestResources
     {
         wireMockServer = new WireMockServer(
                         new WireMockConfiguration().port( 9090 ).extensions( ReturnSameBodyTransformer.class ) );
-
         wireMockServer.start();
-
+        return emptyMap();
+/*
+ * After adding MockPromoteEventConsumer, this is not needed.
+ *
         // for Kafka tests
         Map<String, String> env = new HashMap<>();
         Map<String, String> props1 = InMemoryConnector.switchOutgoingChannelsToInMemory( CHANNEL_PROMOTE_COMPLETE );
         env.putAll(props1);
         return env;
+*/
     }
 
     /**
