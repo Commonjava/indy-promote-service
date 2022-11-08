@@ -52,8 +52,8 @@ public class MockPromoteEventConsumer
             }
 
             if ( event.getSourceStore().endsWith("build-evt")) {
-                // wait 10s before return
-                for (int i = 0; i < 10; i++) {
+                // wait 5s before return
+                for (int i = 0; i < 5; i++) {
                     logger.info("Delete metadata-" + i);
                     try {
                         sleep(1000);
