@@ -65,18 +65,8 @@ public class NoPreExistingPaths_IdempotentTest
     public void run() throws Exception
     {
         // Promotion the same file (with the same checksum)
-        Object promoteRequest = new PathsPromoteRequest( source, target, path ).setPurgeSource( true );
-        Response response =
-                given().when()
-                        .body(mapper.writeValueAsString(promoteRequest))
-                        .header("Content-Type", APPLICATION_JSON)
-                        .post(PROMOTE_PATH);
-
-        assertEquals( 200, response.statusCode() );
-        String content = response.getBody().asString();
-        //System.out.println(">>>\n" + content);
-        PathsPromoteResult result = mapper.readValue( content, PathsPromoteResult.class );
-        assertNotNull( result );
+        PathsPromoteResult result = ruleTestHelper.doPromote(
+                new PathsPromoteRequest( source, target, path ).setPurgeSource( true ) );
 
         assertTrue( result.getRequest().getSource().equals( source ) );
         assertTrue( result.getRequest().getTarget().equals( target ) );
