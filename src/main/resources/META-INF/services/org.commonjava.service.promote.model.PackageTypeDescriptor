@@ -1,1 +1,2 @@
 org.commonjava.service.promote.model.pkg.MavenPackageTypeDescriptor
+org.commonjava.service.promote.model.pkg.NPMPackageTypeDescriptor

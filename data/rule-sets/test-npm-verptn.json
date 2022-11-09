@@ -1,0 +1,11 @@
+{
+  "name": "test-npm-verptn",
+  "storeKeyPattern": "npm:hosted:test-verptn-builds",
+  "ruleNames": [
+    "npm-version-pattern.groovy"
+  ],
+  "validationParameters": {
+    "validScope": "redhat",
+    "versionPattern": "\\d\\.\\d"
+  }
+}

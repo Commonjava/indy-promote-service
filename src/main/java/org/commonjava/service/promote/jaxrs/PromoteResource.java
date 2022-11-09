@@ -22,6 +22,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import org.apache.commons.io.IOUtils;
 
+import org.commonjava.service.promote.core.IndyObjectMapper;
 import org.commonjava.service.promote.exception.PromotionException;
 import org.commonjava.service.promote.core.PromotionManager;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
@@ -60,7 +61,7 @@ public class PromoteResource
     PromotionManager manager;
 
     @Inject
-    ObjectMapper mapper;
+    IndyObjectMapper mapper;
 
     @Inject
     ResponseHelper responseHelper;
