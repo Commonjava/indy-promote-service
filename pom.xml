@@ -28,7 +28,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <toolchains-plugin.version>3.0.0</toolchains-plugin.version>
-        <indy-event.version>1.0</indy-event.version>
+        <indy-event.version>1.1-SNAPSHOT</indy-event.version>
         <weftVersion>1.19</weftVersion>
         <jhttpcVersion>1.12</jhttpcVersion>
         <atlasVersion>1.1.1</atlasVersion>
