@@ -28,6 +28,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.Thread.sleep;
+
 /**
  * This event dispatcher will dispatch Store Event through kafka
  */
@@ -55,6 +57,7 @@ public class KafkaEventDispatcher
         {
             emitter.send(objectMapper.writeValueAsString(event))
                     .toCompletableFuture().get( DEFAULT_SYNC_EVENT_TIMEOUT, TimeUnit.MINUTES );
+            logger.debug( "Firing event done." );
         }
         catch ( Exception e )
         {

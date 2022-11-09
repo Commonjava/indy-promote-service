@@ -73,3 +73,10 @@ kafka:
     kafka:
         bootstrap:
             servers: "localhost:9092"
+
+    mp:
+        messaging:
+            incoming:
+                promote-complete:
+                    connector: smallrye-in-memory
+                    topic: promote-complete
