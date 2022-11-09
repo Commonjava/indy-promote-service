@@ -20,6 +20,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
+import org.commonjava.service.promote.core.IndyObjectMapper;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.ValidationRuleDTO;
 import org.commonjava.service.promote.model.ValidationRuleSet;
@@ -55,7 +56,7 @@ public class PromoteAdminResource
     PromoteValidationsManager validationsManager;
 
     @Inject
-    ObjectMapper mapper;
+    IndyObjectMapper mapper;
 
     @Inject
     ResponseHelper responseHelper;

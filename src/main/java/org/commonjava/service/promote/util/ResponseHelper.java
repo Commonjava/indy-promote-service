@@ -2,6 +2,7 @@ package org.commonjava.service.promote.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.commonjava.service.promote.core.IndyObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +27,7 @@ public class ResponseHelper
     private final static Logger LOGGER = LoggerFactory.getLogger( ResponseHelper.class );
 
     @Inject
-    ObjectMapper mapper;
+    IndyObjectMapper mapper;
 
     //TODO: will think about metrics later
     //    @Inject

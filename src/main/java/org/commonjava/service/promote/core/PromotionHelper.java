@@ -34,19 +34,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
+
+import static java.util.regex.Pattern.compile;
 
 @ApplicationScoped
 public class PromotionHelper
 {
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    public static Predicate<String> isMetadataPredicate() {
-        return Pattern.compile( ".+/maven-metadata\\.xml(\\.(md5|sha[0-9]+))?" ).asPredicate();
+    public static Predicate<String> isMetadataPredicate()
+    {
+        return compile( ".+/maven-metadata\\.xml(\\.(md5|sha[0-9]+))?" ).asPredicate();
     }
 
     public static Predicate<String> isChecksumPredicate() {
-        return Pattern.compile( ".+\\.(md5|sha[0-9]+)" ).asPredicate();
+        return compile( ".+\\.(md5|sha[0-9]+)" ).asPredicate();
     }
 
     @Inject

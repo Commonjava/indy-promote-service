@@ -15,7 +15,6 @@
  */
 package org.commonjava.service.promote.validate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import groovy.lang.Closure;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
@@ -31,6 +30,7 @@ import org.commonjava.indy.pkg.npm.model.PackageMetadata;
 import org.commonjava.service.promote.client.content.ContentService;
 import org.commonjava.service.promote.config.PromoteConfig;
 import org.commonjava.service.promote.core.ContentDigester;
+import org.commonjava.service.promote.core.IndyObjectMapper;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.util.ContentDigest;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -76,7 +76,7 @@ public class PromotionValidationTools
     PromoteConfig promoteConfig;
 
     @Inject
-    ObjectMapper objectMapper;
+    IndyObjectMapper objectMapper;
 
     @Inject
     @WeftManaged
