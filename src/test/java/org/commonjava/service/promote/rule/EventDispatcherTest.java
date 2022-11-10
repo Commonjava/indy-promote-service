@@ -16,6 +16,7 @@
 package org.commonjava.service.promote.rule;
 
 import io.quarkus.test.junit.QuarkusTest;
+import org.commonjava.service.promote.TestHelper;
 import org.commonjava.service.promote.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ import java.io.IOException;
 public class EventDispatcherTest
 {
     @Inject
-    RuleTestHelper ruleTestHelper;
+    TestHelper ruleTestHelper;
 
     private final StoreKey source = new StoreKey( "maven", StoreType.hosted, "build-evt" );
 

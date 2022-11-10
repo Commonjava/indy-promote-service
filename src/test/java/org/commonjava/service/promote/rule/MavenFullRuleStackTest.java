@@ -18,8 +18,8 @@ package org.commonjava.service.promote.rule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.response.Response;
 
+import org.commonjava.service.promote.TestHelper;
 import org.commonjava.service.promote.fixture.TestResources;
 import org.commonjava.service.promote.model.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,12 +34,9 @@ import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.commonjava.service.promote.PromoteResourceTest.PROMOTE_PATH;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * When <br />
@@ -64,7 +61,7 @@ public class MavenFullRuleStackTest
     final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
-    RuleTestHelper ruleTestHelper;
+    TestHelper ruleTestHelper;
 
     private ObjectMapper mapper = new ObjectMapper();
 
