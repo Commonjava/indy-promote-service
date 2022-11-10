@@ -1,0 +1,11 @@
+{
+  "name": "test-maven-verptn",
+  "storeKeyPattern": "maven:hosted:test-verptn-builds",
+  "ruleNames": [
+    "project-version-pattern.groovy"
+  ],
+  "validationParameters": {
+    "validScope": "redhat",
+    "versionPattern": "\\d\\.\\d"
+  }
+}

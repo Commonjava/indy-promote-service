@@ -1,0 +1,11 @@
+{
+  "name": "test-maven-verptn-temp",
+  "storeKeyPattern": "maven:hosted:test-verptn-temp-builds",
+  "ruleNames": [
+    "project-version-pattern.groovy"
+  ],
+  "validationParameters": {
+    "validScope": "redhat",
+    "versionPattern": "\\d+\\.\\d+\\.\\d+\\.(?:[\\w_-]+-)?(?:(?:temporary)|(?:t\\d{8}-\\d{6}-\\d{3}))-redhat-\\d+"
+  }
+}
