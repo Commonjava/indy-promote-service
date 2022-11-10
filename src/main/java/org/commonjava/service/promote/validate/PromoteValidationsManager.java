@@ -230,7 +230,7 @@ public class PromoteValidationsManager
                 logger.debug( "Checking for rule-set match. Key='{}', rule-set: '{}'", keyStr, entry.getKey() );
                 if ( entry.getValue().matchesKey( keyStr ) )
                 {
-                    logger.debug( "Rule set '{}' matches key: '{}'", entry.getKey(), keyStr );
+                    logger.debug( "Rule set '{}' matches key '{}'", entry.getKey(), keyStr );
                     return entry.getValue();
                 }
             }
