@@ -17,7 +17,7 @@ package org.commonjava.service.promote.rule;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.response.Response;
+import org.commonjava.service.promote.TestHelper;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.PathsPromoteResult;
 import org.commonjava.service.promote.model.StoreKey;
@@ -30,8 +30,6 @@ import java.io.IOException;
 import java.util.Set;
 
 import static io.restassured.RestAssured.given;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.commonjava.service.promote.PromoteResourceTest.PROMOTE_PATH;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -41,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class NoPreExistingPaths_IdempotentTest
 {
     @Inject
-    RuleTestHelper ruleTestHelper;
+    TestHelper ruleTestHelper;
 
     private ObjectMapper mapper = new ObjectMapper();
 

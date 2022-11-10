@@ -15,75 +15,51 @@
  */
 package org.commonjava.service.promote.rule;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.junit.QuarkusTest;
-
 import org.commonjava.service.promote.TestHelper;
 import org.commonjava.service.promote.model.*;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
-import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-/**
- * When <br />
- *
- *  <ol>
- *    <li>both source and target have a same path deployed</li>
- *    <li>source has one other path deployed</li>
- *    <li>promotion validation rule-set that includes no-pre-existing-paths.groovy</li>
- *    <li>path promotion request posted</li>
- *  </ol>
- *
- *  Then <br />
- *
- *  <ol>
- *    <li>the no-pre-existing-paths.groovy rule should be triggered with validation error that only has one error</li>
- *  </ol>
- *
- */
 @QuarkusTest
-public class NoPreExistingPaths_RuleTest
+public class ParsablePomTest
 {
     @Inject
     TestHelper ruleTestHelper;
 
-    private ObjectMapper mapper = new ObjectMapper();
-
-    private final StoreKey source = new StoreKey( "maven", StoreType.hosted, "build-r" );
+    private final StoreKey source = new StoreKey( "maven", StoreType.hosted, "build-parsepom" );
 
     private final StoreKey target = new StoreKey( "maven", StoreType.hosted, "test-builds" );;
 
-    private static final String RULE = "no-pre-existing-paths";
-
-    private final String resourceDir = "no-pre-existing-paths/";
-
-    private String invalid = "org/foo/invalid/1/invalid-1.pom";
-    private String valid = "org/foo/valid/1.1/valid-1.1.pom";
-
-    @BeforeEach
-    public void prepare() throws IOException
-    {
-        ruleTestHelper.deployContent( target, invalid, "This is a test" );
-
-        ruleTestHelper.deployResource( source, invalid, resourceDir + "invalid.pom.xml");
-        ruleTestHelper.deployResource( source, valid, resourceDir + "valid.pom.xml" );
-    }
+    private static final String RULE = "parsable-pom";
 
     @Test
     public void run() throws Exception
     {
-        PathsPromoteResult result = ruleTestHelper.doPromote(
-                new PathsPromoteRequest( source, target ).setPurgeSource( true ) );
+        String invalid = "org/foo/invalid/1/invalid-1.pom";
+        String valid = "org/foo/valid/1/valid-1.pom";
+
+        ruleTestHelper.deployContent(source, invalid, "This is not parsable" );
+        ruleTestHelper.deployContent(source, valid, "<?xml version=\"1.0\"?>\n" +
+                "<project>" +
+                "  <modelVersion>4.0.0</modelVersion>" +
+                "  <groupId>org.foo</groupId>" +
+                "  <artifactId>valid</artifactId>" +
+                "  <version>1</version>" +
+                "</project>" );
+
+        PathsPromoteRequest request = new PathsPromoteRequest( source, target );
+        request.setPaths( new HashSet( Arrays.asList( invalid, valid )) );
+
+        PathsPromoteResult result = ruleTestHelper.doPromote(request);
 
         ValidationResult validations = result.getValidations();
         assertThat( validations, notNullValue() );
@@ -91,11 +67,11 @@ public class NoPreExistingPaths_RuleTest
         Map<String, String> validatorErrors = validations.getValidatorErrors();
         assertThat( validatorErrors, notNullValue() );
 
-        //System.out.println(validatorErrors);
+        //System.out.println( validatorErrors );
+
         String errors = validatorErrors.get( RULE );
         assertThat( errors, notNullValue() );
         assertThat( errors.contains( valid ), equalTo( false ) );
         assertThat( errors.contains( invalid ), equalTo( true ) );
     }
-
 }

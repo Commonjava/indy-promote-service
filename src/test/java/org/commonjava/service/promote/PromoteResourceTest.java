@@ -4,24 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 
-import io.restassured.response.Response;
-import org.commonjava.service.promote.client.storage.StorageService;
 import org.commonjava.service.promote.fixture.TestResources;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.PathsPromoteResult;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.StoreType;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
-import java.io.ByteArrayInputStream;
 import java.util.HashSet;
 import java.util.Set;
-
-import static io.restassured.RestAssured.given;
-
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.commonjava.service.promote.TestHelper.VALID_POM_EXAMPLE;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTestResource( TestResources.class )
@@ -34,8 +27,7 @@ public class PromoteResourceTest
     private ObjectMapper mapper = new ObjectMapper();
 
     @Inject
-    @RestClient
-    StorageService storageService;
+    TestHelper testHelper;
 
     @Test
     public void testPromoteAndRollback() throws Exception {
@@ -49,20 +41,12 @@ public class PromoteResourceTest
         PathsPromoteRequest promoteRequest = new PathsPromoteRequest( src, tgt, paths );
 
         // Prepare src file
-        storageService.put( src.toString(), pathPom, new ByteArrayInputStream( "this is a pom".getBytes()));
-        storageService.put( src.toString(), pathJar, new ByteArrayInputStream( "this is a jar even not looks like...".getBytes()));
+        testHelper.deployContent(src, pathPom, VALID_POM_EXAMPLE);
+        testHelper.deployContent(src, pathJar, "This is a jar even not looks like it...");
 
         // Promote
-        Response response =
-                given().when()
-                .body(mapper.writeValueAsString(promoteRequest))
-                .header("Content-Type", APPLICATION_JSON)
-                .post(PROMOTE_PATH);
+        PathsPromoteResult result = testHelper.doPromote( promoteRequest );
 
-        assertEquals( 200, response.statusCode() );
-        String content = response.getBody().asString();
-        //System.out.println(">>>\n" + content);
-        PathsPromoteResult result = mapper.readValue( content, PathsPromoteResult.class );
         assertNotNull( result );
         assertNull( result.getError() );
         assertTrue( result.getCompletedPaths().containsAll(paths) );
@@ -70,16 +54,8 @@ public class PromoteResourceTest
         assertTrue( result.getPendingPaths().isEmpty() );
 
         // Rollback
-        response =
-                given().when()
-                        .body(mapper.writeValueAsString(result))
-                        .header("Content-Type", APPLICATION_JSON)
-                        .post(ROLLBACK_PATH);
+        result = testHelper.doRollback( result );
 
-        assertEquals( 200, response.statusCode() );
-        content = response.getBody().asString();
-        //System.out.println(">>>\n" + content);
-        result = mapper.readValue( content, PathsPromoteResult.class );
         assertNotNull( result );
         assertNull( result.getError() );
         assertTrue( result.getCompletedPaths().isEmpty() ); // rollback dumps the completed back to pending

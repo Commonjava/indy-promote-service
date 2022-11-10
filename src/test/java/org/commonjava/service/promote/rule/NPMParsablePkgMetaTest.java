@@ -16,6 +16,7 @@
 package org.commonjava.service.promote.rule;
 
 import io.quarkus.test.junit.QuarkusTest;
+import org.commonjava.service.promote.TestHelper;
 import org.commonjava.service.promote.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +54,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class NPMParsablePkgMetaTest
 {
     @Inject
-    RuleTestHelper ruleTestHelper;
+    TestHelper ruleTestHelper;
 
     private final StoreKey source = new StoreKey( "npm", StoreType.hosted, "build-pkg" );
 
