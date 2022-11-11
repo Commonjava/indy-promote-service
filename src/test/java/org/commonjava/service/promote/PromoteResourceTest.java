@@ -1,6 +1,5 @@
 package org.commonjava.service.promote;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 
@@ -23,8 +22,6 @@ public class PromoteResourceTest
 {
     public static final String PROMOTE_PATH = "/api/promotion/paths/promote",
         ROLLBACK_PATH = "/api/promotion/paths/rollback";
-
-    private ObjectMapper mapper = new ObjectMapper();
 
     @Inject
     TestHelper testHelper;
