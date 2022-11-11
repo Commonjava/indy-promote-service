@@ -17,6 +17,7 @@ import java.io.InputStream;
 
 import static io.restassured.RestAssured.given;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.apache.http.HttpStatus.SC_OK;
 import static org.commonjava.service.promote.PromoteResourceTest.PROMOTE_PATH;
 import static org.commonjava.service.promote.PromoteResourceTest.ROLLBACK_PATH;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @ApplicationScoped
 public class TestHelper
 {
-    private ObjectMapper mapper = new IndyObjectMapper();
+    public final ObjectMapper mapper = new IndyObjectMapper();
 
     public static final String VALID_POM_EXAMPLE = "<?xml version=\"1.0\"?>\n" +
             "<project>" +
@@ -50,6 +51,11 @@ public class TestHelper
     public void deployContent(StoreKey repo, String path, String content)
     {
         storageService.put(repo.toString(), path, new ByteArrayInputStream(content.getBytes()));
+    }
+
+    public boolean exists(StoreKey repo, String path)
+    {
+        return storageService.exists(repo.toString(), path).getStatus() == SC_OK;
     }
 
     public PathsPromoteResult doPromote(PathsPromoteRequest promoteRequest) throws Exception
