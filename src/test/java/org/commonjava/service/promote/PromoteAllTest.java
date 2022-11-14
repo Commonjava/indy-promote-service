@@ -34,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * This includes 3 test cases: dryRun, do promotion, and purge source.
  */
 @QuarkusTest
-public class PromoteAllAndPurgeTest
+public class PromoteAllTest
 {
     @Inject
     TestHelper testHelper;
