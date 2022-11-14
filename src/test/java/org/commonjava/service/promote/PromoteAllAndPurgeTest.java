@@ -30,6 +30,9 @@ import java.util.Set;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+/**
+ * This includes 3 test cases: dryRun, do promotion, and purge source.
+ */
 @QuarkusTest
 public class PromoteAllAndPurgeTest
 {
@@ -54,6 +57,36 @@ public class PromoteAllAndPurgeTest
     @Test
     public void run() throws Exception
     {
+        // Dry run will not change anything
+        dryRun();
+
+        // Promote
+        runPromote();
+
+        // Purge test
+        purge();
+    }
+
+    private void dryRun() throws Exception
+    {
+        PathsPromoteResult result = testHelper.doPromote( new PathsPromoteRequest( source, target ).setDryRun(true) );
+        assertThat( result.getRequest().getSource(), equalTo( source ) );
+        assertThat( result.getRequest().getTarget(), equalTo( target ) );
+
+        final Set<String> completed = result.getCompletedPaths();
+        assertThat( completed == null || completed.isEmpty(), equalTo( true ) );
+
+        final Set<String> pending = result.getPendingPaths();
+        assertThat( pending, notNullValue() );
+        assertThat( pending.size(), equalTo( 2 ) );
+
+        assertThat( result.getError(), nullValue() );
+        assertThat( testHelper.exists( target, first ), equalTo( false ) );
+        assertThat( testHelper.exists( target, second ), equalTo( false ) );
+    }
+
+    private void runPromote() throws Exception
+    {
         PathsPromoteResult result = testHelper.doPromote( new PathsPromoteRequest( source, target ) );
         assertThat( result.getRequest().getSource(), equalTo( source ) );
         assertThat( result.getRequest().getTarget(), equalTo( target ) );
@@ -68,9 +101,11 @@ public class PromoteAllAndPurgeTest
         assertThat( result.getError(), nullValue() );
         assertThat( testHelper.exists( target, first ), equalTo( true ) );
         assertThat( testHelper.exists( target, second ), equalTo( true ) );
+    }
 
-        // Purge test
-        result = testHelper.doPromote( new PathsPromoteRequest( source, target ).setPurgeSource(true) );
+    private void purge() throws Exception
+    {
+        PathsPromoteResult result = testHelper.doPromote(new PathsPromoteRequest(source, target).setPurgeSource(true));
         assertThat( testHelper.exists( source, first ), equalTo( false ) );
         assertThat( testHelper.exists( source, second ), equalTo( false ) );
     }
