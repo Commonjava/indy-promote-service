@@ -47,6 +47,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 
 import static org.commonjava.service.promote.core.PromotionHelper.*;
@@ -278,16 +279,21 @@ public class PromotionManager
             String[] listResult = (String[]) resp.getEntity();
 
             paths = Arrays.stream(listResult).sequential()
-                    .filter(isMetadataPredicate().negate()).collect(Collectors.toSet()); // exclude metadata
+                    .filter(isMetadataPredicate().negate()).collect(toSet()); // exclude metadata
             request.setPaths( paths );
             logger.info( "List source repo, paths: {}", paths );
         }
 
-        final Set<String> pending = request.getPaths();
+        // Always skip metadata
+        final Set<String> skippedMetadata = request.getPaths().stream().filter(isMetadataPredicate()).collect(toSet());
+
+        final Set<String> pending = request.getPaths().stream()
+                .filter(isMetadataPredicate().negate()).collect(toSet());
         if ( pending.isEmpty() )
         {
-            return new PathsPromoteResult( request, pending, emptySet(), emptySet(), null );
+            return new PathsPromoteResult( request, pending, emptySet(), skippedMetadata, null );
         }
+
 
         AtomicReference<Exception> ex = new AtomicReference<>();
         StoreKeyPaths plk = new StoreKeyPaths( request.getTarget(), pending );
@@ -319,6 +325,14 @@ public class PromotionManager
             promotionHelper.purgeSourceQuietly( request.getSource(), pending );
         }
 
+        // merge all skipped paths
+        if ( !skippedMetadata.isEmpty() )
+        {
+            Set<String> allSkipped = new HashSet<>();
+            allSkipped.addAll(skippedMetadata);
+            allSkipped.addAll(promoteResult.getSkippedPaths());
+            promoteResult.setSkippedPaths( allSkipped );
+        }
         return promoteResult;
     }
 
