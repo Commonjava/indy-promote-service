@@ -53,6 +53,25 @@ public class MockStorageService implements StorageService
     }
 
     @Override
+    public Response exist(final BatchExistRequest request)
+    {
+        Set<String> missing = new HashSet<>();
+        if ( request.getPaths() != null )
+        {
+            request.getPaths().forEach( p -> {
+                if (!isFileExist( request.getFilesystem(), p ))
+                {
+                    missing.add(p);
+                }
+            });
+        }
+        BatchExistResult result = new BatchExistResult();
+        result.setFilesystem(request.getFilesystem());
+        result.setMissing(missing);
+        return Response.status(SC_OK).entity(result).build();
+    }
+
+    @Override
     public Response retrieve(String filesystem, String path) {
         String filesystemDir = filesystem.replaceAll(":", "/");
         File file = Paths.get(mockedStorageRootDir, filesystemDir, path ).toFile();
@@ -114,7 +133,7 @@ public class MockStorageService implements StorageService
                     } catch (IOException e) {
                         FileCopyResult result = new FileCopyResult(false);
                         e.printStackTrace();
-                        result.setMessage("File copy failed: " + e.getMessage());
+                        result.setMessage("File copy failed, error: " + e);
                         return Response.status(SC_OK).entity(result).build();
                     }
                     completed.add(path);
@@ -148,12 +167,17 @@ public class MockStorageService implements StorageService
 
     @Override
     public Response exists(String filesystem, String path) {
-        String filesystemDir = filesystem.replaceAll(":", "/");
-        File file = Paths.get(mockedStorageRootDir, filesystemDir, path ).toFile();
-        if (file.isFile()) {
+        if (isFileExist(filesystem, path)) {
             return Response.status( SC_OK ).build();
         }
         return Response.status(SC_NOT_FOUND).build();
+    }
+
+    private boolean isFileExist( String filesystem, String path )
+    {
+        String filesystemDir = filesystem.replaceAll(":", "/");
+        File file = Paths.get(mockedStorageRootDir, filesystemDir, path ).toFile();
+        return file.isFile();
     }
 
     @Override
