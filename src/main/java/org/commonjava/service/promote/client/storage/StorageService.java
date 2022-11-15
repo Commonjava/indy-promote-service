@@ -21,6 +21,10 @@ public interface StorageService
     Response delete(final BatchDeleteRequest request );
 
     @GET
+    @Path("filesystem/exist")
+    Response exist(final BatchExistRequest request );
+
+    @GET
     @Path("content/{filesystem}/{path: (.*)}")
     Response retrieve(final @PathParam( "filesystem" ) String filesystem, final @PathParam( "path" ) String path);
 

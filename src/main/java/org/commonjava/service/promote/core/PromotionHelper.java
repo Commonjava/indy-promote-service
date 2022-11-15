@@ -15,9 +15,7 @@
  */
 package org.commonjava.service.promote.core;
 
-import org.commonjava.service.promote.client.storage.BatchDeleteRequest;
-import org.commonjava.service.promote.client.storage.BatchDeleteResult;
-import org.commonjava.service.promote.client.storage.StorageService;
+import org.commonjava.service.promote.client.storage.*;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.StoreKey;
 

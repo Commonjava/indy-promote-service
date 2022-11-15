@@ -20,18 +20,14 @@ import org.commonjava.cdi.util.weft.*;
 
 import org.commonjava.event.promote.PathsPromoteCompleteEvent;
 import org.commonjava.service.promote.callback.PromotionCallbackHelper;
+import org.commonjava.service.promote.client.content.ContentService;
 import org.commonjava.service.promote.client.kafka.KafkaEventDispatcher;
-import org.commonjava.service.promote.client.storage.FileCopyResult;
-import org.commonjava.service.promote.client.storage.StorageService;
+import org.commonjava.service.promote.client.storage.*;
 import org.commonjava.service.promote.config.PromoteConfig;
 import org.commonjava.service.promote.exception.PromotionException;
-import org.commonjava.service.promote.model.PathsPromoteRequest;
-import org.commonjava.service.promote.model.PathsPromoteResult;
-import org.commonjava.service.promote.model.StoreKey;
-import org.commonjava.service.promote.model.ValidationResult;
+import org.commonjava.service.promote.model.*;
 
 import org.commonjava.service.promote.validate.PromotionValidator;
-import org.commonjava.service.promote.client.storage.FileCopyRequest;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +84,10 @@ public class PromotionManager
     @Inject
     @RestClient
     private StorageService storageService;
+
+    @Inject
+    @RestClient
+    private ContentService contentService;
 
     private static String TYPE_FILE = "file"; // for listing
 
@@ -390,6 +390,12 @@ public class PromotionManager
                                            StringUtils.join( checkResult.errors, "\n" ), validation );
         }
 
+        // re-download missing remote files if any (this may be caused by reasons such as file expiration)
+        if ( request.getSource().getType() == StoreType.remote )
+        {
+            reDownloadMissing(request.getSource(), pending);
+        }
+
         final Set<PathTransferResult> results = copy( request );
 
         final List<String> errors = new ArrayList<>();
@@ -449,6 +455,28 @@ public class PromotionManager
         return result;
     }
 
+    private boolean reDownloadMissing(StoreKey storeKey, Set<String> paths)
+    {
+        BatchExistRequest request = new BatchExistRequest();
+        request.setFilesystem( storeKey.toString());
+        request.setPaths(paths);
+        Response resp = storageService.exist(request);
+        if (!isSuccess(resp))
+        {
+            logger.warn("Re-download existence check failed, status: {}", resp.getStatus() );
+            return false;
+        }
+        BatchExistResult batchExistResult = resp.readEntity(BatchExistResult.class);
+        Set<String> missing = batchExistResult.getMissing();
+        if (missing != null && !missing.isEmpty())
+        {
+            logger.info("Re-download missing, storeKey: {}, paths: {}", storeKey, missing);
+            missing.forEach( p -> contentService.retrieve(
+                    storeKey.getPackageType(), storeKey.getType().getName(), storeKey.getName(), p));
+        }
+        return true;
+    }
+
     private Set<PathTransferResult> copy(PathsPromoteRequest promoteRequest)
     {
         FileCopyRequest fileCopyRequest = new FileCopyRequest();
@@ -458,13 +486,12 @@ public class PromotionManager
         fileCopyRequest.setPaths( promoteRequest.getPaths() );
 
         Response resp = storageService.copy(fileCopyRequest);
-        if ( Response.Status.fromStatusCode( resp.getStatus() ).getFamily()
-                != Response.Status.Family.SUCCESSFUL  )
+        if (!isSuccess(resp))
         {
             return errResults( "Copy failed, resp status: " + resp.getStatus() );
         }
-
         FileCopyResult fileCopyResult = resp.readEntity(FileCopyResult.class);
+
         if ( fileCopyResult.isSuccess() )
         {
             Set<PathTransferResult> results = new HashSet<>();
@@ -483,6 +510,11 @@ public class PromotionManager
 
         // Otherwise return error
         return errResults( "Copy failed: " + fileCopyResult.getMessage() );
+    }
+
+    private boolean isSuccess(Response resp) {
+        return Response.Status.fromStatusCode(resp.getStatus()).getFamily()
+                == Response.Status.Family.SUCCESSFUL;
     }
 
     private Set<PathTransferResult> errResults(String errors)
