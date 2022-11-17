@@ -40,7 +40,6 @@ import java.util.*;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
@@ -417,41 +416,19 @@ public class PromotionManager
             }
         } );
 
-        PathsPromoteResult result;
         if ( !errors.isEmpty() )
         {
             Set<String> rollbackErrors = promotionHelper.delete( request.getTarget(), completed );
             errors.addAll( rollbackErrors );
-            result = new PathsPromoteResult( request, pending, emptySet(), emptySet(), StringUtils.join( errors, "\n" ),
-                                             validation );
-        }
-        else
-        {
-            result = new PathsPromoteResult( request, emptySet(), completed, skipped, null, validation );
-/*
- * TODO: dump this NFC clean up. On promote service, we have no NFC cache involved.
- * Instead, we should fire event via Kafka telling that some NFC entries and maven matedata files should be expired,
- * as consequences of the promotion.
-
-            final String name = String.format( "PromoteNFCClean-method(%s)-source(%s)-target(%s)", "runPathPromotions",
-                                               request.getSource(), targetStore.getKey() );
-            final String context =
-                    String.format( "Class: %s, method: %s, source: %s, target: %s", this.getClass().getName(),
-                                   "runPathPromotions", request.getSource(), targetStore.getKey() );
-            storeManager.asyncGroupAffectedBy( new StoreDataManager.ContextualTask( name, context,
-                                                                                    () -> promotionHelper.clearStoreNFC(
-                                                                                                    completed,
-                                                                                                    targetStore,
-                                                                                                    affectedGroups ) ) );
-            if ( request.isFireEvents() )
-            {
-                fireEvent( promoteCompleteEvent, new PathsPromoteCompleteEvent( result ) );
-            }
-*/
+            return new PathsPromoteResult( request, pending, emptySet(), emptySet(),
+                    StringUtils.join( errors, "\n" ), validation );
         }
 
+        PathsPromoteResult result = new PathsPromoteResult( request, emptySet(), completed, skipped, null, validation );
         logger.info( "Promotion completed, promotionId: {}, timeInSeconds: {}", request.getPromotionId(),
                      timeInSeconds( begin ) );
+
+        // Post-action 'clearStoreNFC' has been replaced by handling kafka event in main Indy
         return result;
     }
 
@@ -525,141 +502,5 @@ public class PromotionManager
         errResults.add( errResult );
         return errResults;
     }
-
-/*
-    private Callable<Set<PathTransferResult>> newPathPromotionsJob( final Collection<Transfer> transfers,
-                                                                    final ArtifactStore tgt,
-                                                                    final PathsPromoteRequest request,
-                                                                    final Set<Group> affectedGroups )
-    {
-        return () -> {
-            Set<String> pathsForMDC = new HashSet<>();
-            Set<PathTransferResult> results = new HashSet<>();
-            for ( Transfer transfer : transfers )
-            {
-                pathsForMDC.add( transfer.getPath() );
-
-                PathTransferResult ret = doPathTransfer( transfer, tgt, request, affectedGroups );
-                results.add( ret );
-            }
-            RequestContextHelper.setContext( PROMOTION_CONTENT_PATH, pathsForMDC.toString() );
-            return results;
-        };
-    }
-
-    private PathTransferResult doPathTransfer( Transfer transfer, final ArtifactStore tgt,
-                                               final PathsPromoteRequest request, final Set<Group> affectedGroups )
-                    throws Exception
-    {
-        logger.debug( "Do path transfer, transfer: {}, target: {}", transfer, tgt );
-
-        if ( transfer == null )
-        {
-            final String error = String.format( "Warning: doPathTransfer cannot process null transfer to target: %s", tgt );
-            logger.error( error );
-            //FIXME: throw IndyWorkflowException is better?
-            PathTransferResult result = new PathTransferResult( "" );
-            result.error = error;
-            return result;
-        }
-
-        long begin = System.currentTimeMillis();
-
-        final String path = transfer.getPath();
-        PathTransferResult result = new PathTransferResult( path );
-
-        if ( !transfer.exists() )
-        {
-            logger.debug( "Transfer not exist, {}", transfer );
-            SpecialPathInfo pathInfo = specialPathManager.getSpecialPathInfo( transfer, tgt.getPackageType() );
-            // if we can't decorate it, that's because we don't want to automatically generate checksums, etc. for it
-            // i.e. it's something we would generate on demand for another file.
-            if ( pathInfo != null && !pathInfo.isDecoratable() )
-            {
-                logger.info( "Skipping missing, not decoratable path: {}", transfer );
-                result.skipped = true;
-                return result;
-            }
-
-            if ( promotionHelper.isRemoteTransfer( transfer ) )
-            {
-                transfer = promotionHelper.redownload( transfer ); // try re-download it for remote artifacts
-            }
-
-            if ( transfer == null || !transfer.exists() )
-            {
-                String msg = String.format( "Failed to promote: %s. Source file not exists.", transfer );
-                logger.info( msg );
-                result.error = msg;
-                return result;
-            }
-        }
-
-        Transfer target = contentManager.getTransfer( tgt, path, UPLOAD );
-        EventMetadata eventMetadata = new EventMetadata().set( IGNORE_READONLY, true );
-
-        // if we hit an existing metadata.xml, we remove it from both target repo and affected groups. The metadata
-        // will be regenerated on next request.
-        SpecialPathInfo pathInfo = specialPathManager.getSpecialPathInfo( target, tgt.getPackageType() );
-        if ( pathInfo != null && pathInfo.isMetadata() )
-        {
-            try
-            {
-                if ( target != null && target.exists() )
-                {
-                    contentManager.delete( tgt, path, eventMetadata );
-                }
-                result.skipped = true;
-                logger.info( "Metadata, mark as skipped and remove it if exists, target: {}", target );
-            }
-            catch ( Exception e )
-            {
-                String msg = String.format( "Failed to promote metadata: %s. Target: %s. Error: %s", transfer,
-                                            request.getTarget(), e.getMessage() );
-                logger.error( msg, e );
-                result.error = msg;
-            }
-
-            return result;
-        }
-
-        if ( target != null && target.exists() )
-        {
-            // e.g., fail in case of promotion of built artifacts into pnc-builds while it should pass (skip them)
-            // in case of promotion of dependencies into shared-imports.
-            if ( request.isFailWhenExists() )
-            {
-                String msg = String.format( "Failed to promote: %s. Target: %s. Target file already exists.",
-                                            transfer, request.getTarget() );
-                logger.info( msg );
-                result.error = msg;
-            }
-            else
-            {
-                result.skipped = true;
-            }
-            return result;
-        }
-
-        logger.debug( "Store target transfer: {}", target );
-        eventMetadata.set( AFFECTED_GROUPS, new ValuePipe<>( affectedGroups ) ).set( TARGET_STORE, tgt );
-
-        try (InputStream stream = transfer.openInputStream( true ))
-        {
-            contentManager.store( tgt, path, stream, UPLOAD, eventMetadata );
-        }
-        catch ( final IOException e )
-        {
-            String msg = String.format( "Failed to promote: %s. Error: %s", transfer, e.getMessage() );
-            result.error = msg;
-            logger.error( msg, e );
-        }
-
-        logger.info( "Promotion transfer completed, target: {}, path: {}, timeInMillSeconds: {}", tgt.getKey(), path,
-                     timeInMillSeconds( begin ) );
-
-        return result;
-    }
-*/
 
 }

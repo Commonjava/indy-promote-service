@@ -17,6 +17,7 @@ package org.commonjava.service.promote;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
+import org.commonjava.service.promote.model.PathsPromoteResult;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.StoreType;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,20 +25,41 @@ import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.Set;
 
-import static org.commonjava.service.promote.PromoteRollbackTest.promoteThenRollback;
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+/**
+ * GIVEN:
+ * <ul>
+ *     <li>Two hosted repos source and target, two paths are loaded to source repo</li>
+ * </ul>
+ * WHEN:
+ * <ul>
+ *     <li>Two paths in source are promoted to target</li>
+ * </ul>
+ * THEN:
+ * <ol>
+ *     <li>Promotion succeeds with paths being promoted to target</li>
+ * </ol>
+ * WHEN:
+ * <ul>
+ *     <li>Rollback by the promote result</li>
+ * </ul>
+ * THEN:
+ * <ol>
+ *     <li>Promotion rollback succeeds with paths being present in source and no files left in target</li>
+ * </ol>
+ */
 @QuarkusTest
-public class PromoteWithPurgeThenRollbackTest
-{
+public class PromoteRollbackTest {
     @Inject
     TestHelper testHelper;
 
-    protected StoreKey source = new StoreKey("maven", StoreType.hosted, "source-p-rbk");
+    protected StoreKey source = new StoreKey("maven", StoreType.hosted, "source-rbk");
 
-    protected StoreKey target = new StoreKey("maven", StoreType.hosted, "target-p-rbk");
+    protected StoreKey target = new StoreKey("maven", StoreType.hosted, "target-rbk");
 
     private final String first = "/first/path";
 
@@ -53,7 +75,7 @@ public class PromoteWithPurgeThenRollbackTest
     @Test
     public void run() throws Exception
     {
-        PathsPromoteRequest request = new PathsPromoteRequest(source, target).setPurgeSource(true);
+        PathsPromoteRequest request = new PathsPromoteRequest(source, target);
         promoteThenRollback(request, testHelper);
 
         // Paths being restored to source and no files left in target
@@ -62,4 +84,29 @@ public class PromoteWithPurgeThenRollbackTest
         assertThat(testHelper.exists(source, first), equalTo(true));
         assertThat(testHelper.exists(source, second), equalTo(true));
     }
+
+    static void promoteThenRollback(PathsPromoteRequest request, TestHelper testHelper) throws Exception
+    {
+        PathsPromoteResult result = testHelper.doPromote(request);
+
+        Set<String> pending = result.getPendingPaths();
+        assertThat(pending == null || pending.isEmpty(), equalTo(true));
+
+        Set<String> completed = result.getCompletedPaths();
+        assertThat(completed, notNullValue());
+        assertThat(completed.size(), equalTo(2));
+        assertThat(result.getError(), nullValue());
+
+        // Rollback
+        result = testHelper.doRollback(result);
+
+        completed = result.getCompletedPaths();
+        assertThat(completed == null || completed.isEmpty(), equalTo(true));
+
+        pending = result.getPendingPaths();
+        assertThat(pending, notNullValue());
+        assertThat(pending.size(), equalTo(2));
+        assertThat(result.getError(), nullValue());
+    }
+
 }
