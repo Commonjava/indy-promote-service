@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Pathmap Storage Service</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/wingcss/0.1.8/wing.min.css"/>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script type="text/javascript">
+      var app = angular.module("Promote", []);
+
+      //Controller Part
+      app.controller("PromoteController", function ($scope, $http) {
+        //Initialize page with default data
+        $scope.stats = {};
+
+        //Now load the data from server
+        _refreshPageData();
+
+        function _refreshPageData() {
+          $http({
+            method: 'GET',
+            url: '/api/stats/version-info'
+          }).then(function successCallback(response) {
+            $scope.stats = response.data;
+          }, function errorCallback(response) {
+            console.log(response.statusText);
+          });
+        }
+      });
+    </script>
+</head>
+<body ng-app="Promote" ng-controller="PromoteController">
+
+<div class="container">
+    <h1>Indy Promote Service</h1>
+    <hr/>
+
+    <div class="cards">
+        <div class="card">
+            <h5 class="card-header">About</h5>
+            <p class="card-body"><b>Indy Promote Service</b> provides REST endpoints to promote and rollback artifacts.</p>
+        </div>
+        <div class="card">
+            <h5 class="card-header">Rules</h5>
+            <p class="card-body">Click to see the
+                <a target="_new" href="/api/promotion/admin/validation/rules/all">rules</a>.</p>
+        </div>
+        <div class="card">
+            <h5 class="card-header">Rulesets</h5>
+            <p class="card-body">Click to see the
+                <a target="_new" href="/api/promotion/admin/validation/rulesets">rulesets</a>.</p>
+        </div>
+    </div>
+
+    <div style="position: fixed; bottom: 5%; text-align: center;">
+        <hr/>
+        <a target="_new" href="https://github.com/Commonjava/indy-promote-service">Github Project</a> |
+        Version: {{ stats.version }} |
+        Commit ID: <a target="_new" href="http://github.com/Commonjava/indy-promote-service/commit/{{stats['commit-id']}}">{{ stats["commit-id"] }}</a> |
+        Built on {{ stats["timestamp"] }} by {{ stats["builder"] }}
+    </div>
+
+</div>
+
+</body>
+</html>

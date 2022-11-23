@@ -106,10 +106,8 @@ public class PromoteAdminResource
         } );
     }
 
-    @ApiOperation( "Get promotion rule-set by store key" )
-    @ApiResponses( { @ApiResponse( code = 200, response = Response.class,
-                                   message = "The promotion validation rule-set definition" ),
-                           @ApiResponse( code = 404, message = "The rule-set doesn't exist" ) } )
+    @ApiOperation( "Get promotion rule-set names" )
+    @ApiResponses( { @ApiResponse( code = 200, message = "The promotion validation rule-set names" ) } )
     @Path( "/validation/rulesets/all" )
     @GET
     @Produces( APPLICATION_JSON )
@@ -117,14 +115,20 @@ public class PromoteAdminResource
     {
         return checkEnabledAnd( () -> {
             Map<String, ValidationRuleSet> ruleSets = validationsManager.toDTO().getRuleSets();
-            if ( !ruleSets.isEmpty() )
-            {
-                return Response.ok( new ArrayList<>( ruleSets.keySet() ) ).build();
-            }
-            else
-            {
-                return Response.status( Response.Status.NOT_FOUND ).entity( Collections.emptyList() ).build();
-            }
+            return Response.ok( new ArrayList<>( ruleSets.keySet() ) ).build();
+        } );
+    }
+
+    @ApiOperation( "Get promotion rule-set definitions" )
+    @ApiResponses( { @ApiResponse( code = 200, message = "The promotion validation rule-set definitions" ) } )
+    @Path( "/validation/rulesets" )
+    @GET
+    @Produces( APPLICATION_JSON )
+    public Response getAllRuleSetsDefinitions( final @Context SecurityContext securityContext, final @Context UriInfo uriInfo )
+    {
+        return checkEnabledAnd( () -> {
+            Map<String, ValidationRuleSet> ruleSets = validationsManager.toDTO().getRuleSets();
+            return Response.ok( ruleSets ).build();
         } );
     }
 
