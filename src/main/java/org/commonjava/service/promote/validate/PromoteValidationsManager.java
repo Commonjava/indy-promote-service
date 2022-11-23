@@ -40,7 +40,7 @@ public class PromoteValidationsManager
 
     public static final String RULES_DIR = "rules";
 
-    private static final String RULES_SETS_DIR = "rule-sets";
+    public static final String RULES_SETS_DIR = "rule-sets";
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -96,7 +96,7 @@ public class PromoteValidationsManager
 
     private void parseRules() throws Exception {
         // Load default rules
-        logger.info("Load default validation rules...");
+        logger.info("Load default validation rules from resource.");
         List<String> defaultRules = getResourceRuleFiles( RULES_DIR );
         for (final String f : defaultRules) {
             logger.info("Load default validation rule: {}", f );
@@ -131,15 +131,17 @@ public class PromoteValidationsManager
         return name.replace(".groovy", "");
     }
 
-    private List<String> getResourceRuleFiles( String path ) throws IOException {
+    private List<String> getResourceRuleFiles( String path ) throws IOException
+    {
         List<String> filenames = new ArrayList<>();
-
-        try ( InputStream in = this.getClass().getClassLoader().getResourceAsStream(path);
-              BufferedReader br = new BufferedReader(new InputStreamReader(in)))
+        try ( InputStream in = this.getClass().getClassLoader().getResourceAsStream(path))
         {
-            String resource;
-            while ((resource = br.readLine()) != null) {
-                filenames.add(resource);
+            if ( in != null ) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(in));
+                String resource;
+                while ((resource = br.readLine()) != null) {
+                    filenames.add(resource);
+                }
             }
         }
         return filenames;
