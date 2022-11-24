@@ -32,6 +32,7 @@
         <weftVersion>1.19</weftVersion>
         <jhttpcVersion>1.12</jhttpcVersion>
         <atlasVersion>1.1.1</atlasVersion>
+        <quarkus.package.type>uber-jar</quarkus.package.type>
     </properties>
 
     <dependencies>
