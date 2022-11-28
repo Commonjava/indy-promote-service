@@ -1,25 +1,13 @@
 version: '3.5'
 services:
-  cassandra:
-    image: cassandra:3.11.10
-    container_name: cassandra
-    ports:
-      - "9042:9042"
-    environment:
-      - "MAX_HEAP_SIZE=256M"
-      - "HEAP_NEWSIZE=128M"
-    restart: always
-    volumes:
-      - /tmp/cassandra:/var/lib/cassandra
-
-  pathmap-storage-service:
-    image: quay.io/factory2/pathmap-storage-service:latest
-    container_name: storage
-    ports:
-      - "8081:8080"
-    restart: always
-    #volumes:
-    #  - ./storage-service/config:/opt/pathmap-storage-service/config
+#  pathmap-storage-service:
+#    image: quay.io/factory2/pathmap-storage-service:latest
+#    container_name: storage
+#    ports:
+#      - "8081:8080"
+#    restart: always
+#    #volumes:
+#    #  - ./storage-service/config:/opt/pathmap-storage-service/config
 
   zookeeper:
     image: strimzi/kafka:0.19.0-kafka-2.5.0
@@ -47,3 +35,13 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+  indy-promote-service:
+    image: quay.io/factory2/indy-promote-service:latest
+    container_name: promote
+    ports:
+      - "8080:8080"
+    restart: always
+    volumes:
+      - ./config:/opt/indy-promote-service/config
+      - ./data:/opt/indy-promote-service/data
