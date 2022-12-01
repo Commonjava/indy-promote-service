@@ -27,8 +27,26 @@ quarkus:
                 max-backup-index: 5
                 max-file-size: 10M
 
-    swagger-ui:
-        always-include: true
+#    keycloak:
+#        policy-enforcer:
+#            enable: false
+#    oidc:
+#        enabled: false
+#        auth-server-url: "https://localhost:8543/realms/indy"
+#        client-id: indy
+#        credentials:
+#            secret: secret
+#        tls:
+#            verification: none
+#        token:
+#            issuer: any
+#
+#    swagger-ui:
+#        always-include: true
+
+indy_security:
+    enabled: false
+    security_bindings_yaml: config/security-bindings.yaml
 
 promote:
     baseDir: "data"
