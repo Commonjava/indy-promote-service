@@ -26,7 +26,11 @@ quarkus:
             rotation:
                 max-backup-index: 5
                 max-file-size: 10M
-
+    oidc:
+        enabled: false
+    security:
+        auth:
+            enabled-in-dev-mode: false
 #    keycloak:
 #        policy-enforcer:
 #            enable: false
