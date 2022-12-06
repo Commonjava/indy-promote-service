@@ -32,6 +32,7 @@
         <weftVersion>1.19</weftVersion>
         <jhttpcVersion>1.12</jhttpcVersion>
         <atlasVersion>1.1.1</atlasVersion>
+        <indysecurity.verison>1.0</indysecurity.verison>
         <quarkus.package.type>uber-jar</quarkus.package.type>
     </properties>
 
@@ -122,6 +123,11 @@
             <groupId>org.commonjava.indy.service</groupId>
             <artifactId>indy-event-model</artifactId>
             <version>${indy-event.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.commonjava.indy.service</groupId>
+            <artifactId>indy-security</artifactId>
+            <version>${indysecurity.verison}</version>
         </dependency>
 
         <!-- for unit test -->
