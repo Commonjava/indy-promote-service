@@ -26,27 +26,25 @@ quarkus:
             rotation:
                 max-backup-index: 5
                 max-file-size: 10M
+    keycloak:
+        policy-enforcer:
+            enable: false
     oidc:
-        enabled: false
+        enabled: true
+        auth-server-url: "https://localhost:8543/realms/indy"
+        client-id: indy
+        credentials:
+            secret: secret
+        tls:
+            verification: none
+        token:
+            issuer: any
     security:
         auth:
             enabled-in-dev-mode: false
-#    keycloak:
-#        policy-enforcer:
-#            enable: false
-#    oidc:
-#        enabled: false
-#        auth-server-url: "https://localhost:8543/realms/indy"
-#        client-id: indy
-#        credentials:
-#            secret: secret
-#        tls:
-#            verification: none
-#        token:
-#            issuer: any
-#
-#    swagger-ui:
-#        always-include: true
+
+    swagger-ui:
+        always-include: true
 
 indy_security:
     enabled: false
