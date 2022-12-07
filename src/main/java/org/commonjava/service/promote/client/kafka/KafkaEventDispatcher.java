@@ -26,9 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.concurrent.TimeUnit;
-
-import static java.lang.Thread.sleep;
 
 /**
  * This event dispatcher will dispatch Store Event through kafka
@@ -38,8 +35,6 @@ import static java.lang.Thread.sleep;
 public class KafkaEventDispatcher
 {
     public static final String CHANNEL_PROMOTE_COMPLETE = "promote-complete";
-
-    private static final int DEFAULT_SYNC_EVENT_TIMEOUT = 5;
 
     private final Logger logger = LoggerFactory.getLogger( this.getClass() );
 
@@ -55,8 +50,7 @@ public class KafkaEventDispatcher
         logger.debug( "Firing event to external: {}", event );
         try
         {
-            emitter.send(objectMapper.writeValueAsString(event))
-                    .toCompletableFuture().get( DEFAULT_SYNC_EVENT_TIMEOUT, TimeUnit.MINUTES );
+            emitter.send(objectMapper.writeValueAsString(event));
             logger.debug( "Firing event done." );
         }
         catch ( Exception e )
