@@ -6,8 +6,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-
 @Path("/api/storage")
 @RegisterRestClient(configKey="storage-service-api")
 public interface StorageService
@@ -29,7 +27,6 @@ public interface StorageService
     Response retrieve(final @PathParam( "filesystem" ) String filesystem, final @PathParam( "path" ) String path);
 
     @PUT
-    @POST
     @Path( "content/{filesystem}/{path: (.*)}" )
     Response put(final @PathParam( "filesystem" ) String filesystem, final @PathParam( "path" ) String path, final InputStream in);
 
