@@ -1,5 +1,7 @@
 package org.commonjava.service.promote.client.content;
 
+import org.commonjava.service.promote.client.CustomClientRequestFilter;
+import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 import javax.ws.rs.*;
@@ -7,6 +9,7 @@ import javax.ws.rs.core.Response;
 
 @Path("/api/content")
 @RegisterRestClient(configKey="content-service-api")
+@RegisterProvider(CustomClientRequestFilter.class)
 public interface ContentService
 {
     @GET
