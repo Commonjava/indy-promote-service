@@ -43,6 +43,12 @@ quarkus:
         auth:
             enabled-in-dev-mode: false
 
+    oidc-client:
+        auth-server-url: "keycloak_server_url/realms/pncredhat"
+        client-id: your_client_id
+        credentials:
+            secret: your_secret
+
     swagger-ui:
         always-include: true
 
@@ -54,15 +60,11 @@ promote:
     baseDir: "data"
     callbackUri: "callbackUri"
 
-storage-service-api:
-    mp-rest:
-        url: http://localhost
-        scope: javax.inject.Singleton
+storage-service-api/mp-rest/url: http://localhost
+storage-service-api/mp-rest/scope: javax.inject.Singleton
 
-content-service-api:
-    mp-rest:
-        url: http://localhost
-        scope: javax.inject.Singleton
+content-service-api/mp-rest/url: http://localhost
+content-service-api/mp-rest/scope: javax.inject.Singleton
 
 kafka:
     bootstrap:
