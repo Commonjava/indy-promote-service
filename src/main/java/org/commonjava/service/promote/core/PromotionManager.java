@@ -368,7 +368,7 @@ public class PromotionManager
             {
                 logger.info( "Path promotion succeeded. Result: " + result );
                 kafkaEventDispatcher.fireEvent( new PathsPromoteCompleteEvent(request.getPromotionId(),
-                        request.getSource().toString(), request.getTarget().toString(), result.getCompletedPaths() ) );
+                        request.getSource().toString(), request.getTarget().toString(), result.getCompletedPaths(), request.isPurgeSource()) );
             }
             return result;
         }
