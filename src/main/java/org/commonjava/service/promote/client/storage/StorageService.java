@@ -17,7 +17,7 @@ public interface StorageService
     @Path("content/{filesystem}/{path: (.*)}")
     Response delete(final @PathParam( "filesystem" ) String filesystem, final @PathParam( "path" ) String path);
 
-    @DELETE
+    @POST
     @Path("filesystem")
     Response delete(final BatchDeleteRequest request );
 
