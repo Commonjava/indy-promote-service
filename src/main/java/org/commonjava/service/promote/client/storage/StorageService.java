@@ -21,7 +21,7 @@ public interface StorageService
     @Path("filesystem")
     Response delete(final BatchDeleteRequest request );
 
-    @GET
+    @POST
     @Path("filesystem/exist")
     Response exist(final BatchExistRequest request );
 
