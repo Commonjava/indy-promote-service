@@ -34,15 +34,10 @@ public class CustomClientRequestFilter implements ClientRequestFilter
     {
         if ( securityEnabled )
         {
-            if ( tokens == null )
+            if ( tokens == null || tokens.isAccessTokenExpired() )
             {
                 logger.debug("Security enabled, get oidc Tokens");
                 tokens = client.getTokens().await().indefinitely();
-            }
-            else if (tokens.isAccessTokenExpired())
-            {
-                logger.debug("Refresh oidc Tokens");
-                tokens = client.refreshTokens(tokens.getRefreshToken()).await().indefinitely();
             }
             requestContext.getHeaders().add(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.getAccessToken());
         }
