@@ -80,7 +80,7 @@ public class PromotionValidationTools
 
     @Inject
     @WeftManaged
-    @ExecutorConfig( named = "promote-validation-rules-executor", threads = 8 )
+    @ExecutorConfig( named = "promote-validation-rules-executor", threads = 16 )
     WeftExecutorService ruleParallelExecutor;
 
     @Inject

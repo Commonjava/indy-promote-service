@@ -449,10 +449,31 @@ public class PromotionManager
         if (missing != null && !missing.isEmpty())
         {
             logger.info("Re-download missing, storeKey: {}, paths: {}", storeKey, missing);
-            missing.forEach( p -> contentService.retrieve(
-                    storeKey.getPackageType(), storeKey.getType().getName(), storeKey.getName(), p));
+            missing.forEach( p -> reDownload( storeKey, p ));
         }
         return true;
+    }
+
+    private void reDownload(StoreKey storeKey, String path)
+    {
+        try
+        {
+            logger.debug( "Downloading {}", path );
+            Response r = contentService.retrieve(
+                    storeKey.getPackageType(), storeKey.getType().getName(), storeKey.getName(), path );
+            if ( r.getStatus() == Response.Status.OK.getStatusCode() )
+            {
+                logger.debug( "Downloaded - {}", path );
+            }
+            else
+            {
+                logger.warn( "Download failed, path: {}, status: {}", path, r.getStatus() );
+            }
+        }
+        catch ( Exception e )
+        {
+            logger.warn( "Download failed, path: " + path, e );
+        }
     }
 
     private Set<PathTransferResult> copy(PathsPromoteRequest promoteRequest)
