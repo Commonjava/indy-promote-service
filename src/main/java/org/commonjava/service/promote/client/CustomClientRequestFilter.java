@@ -8,6 +8,8 @@ import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import io.quarkus.oidc.client.OidcClient;
 import io.quarkus.oidc.client.Tokens;
@@ -29,11 +31,18 @@ public class CustomClientRequestFilter implements ClientRequestFilter
     @ConfigProperty(name = "indy_security.enabled")
     boolean securityEnabled;
 
+    private static final List<String> nonAuthMethods = Arrays.asList("GET", "HEAD"); // skip auth for GET/HEAD requests
+
     @Override
     public void filter(ClientRequestContext requestContext) throws IOException
     {
         if ( securityEnabled )
         {
+            String method = requestContext.getMethod().toUpperCase();
+            if ( nonAuthMethods.contains(method) )
+            {
+                return;
+            }
             if ( tokens == null || tokens.isAccessTokenExpired() )
             {
                 logger.debug("Security enabled, get oidc Tokens");
