@@ -448,7 +448,7 @@ public class PromotionManager
         Set<String> missing = batchExistResult.getMissing();
         if (missing != null && !missing.isEmpty())
         {
-            logger.info("Re-download missing, storeKey: {}, paths: {}", storeKey, missing);
+            logger.info("Re-download missing, storeKey: {}, size: {}, paths: {}", storeKey, missing.size(), missing);
             missing.forEach( p -> reDownload( storeKey, p ));
         }
         return true;

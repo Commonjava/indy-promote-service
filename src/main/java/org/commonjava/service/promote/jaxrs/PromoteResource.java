@@ -81,8 +81,9 @@ public class PromoteResource
         try
         {
             final String json = IOUtils.toString( request.getInputStream(), defaultCharset() );
-            logger.info( "Got promotion request:\n{}", json );
             req = mapper.readValue( json, PathsPromoteRequest.class );
+            final int size = req.getPaths() != null ? req.getPaths().size() : -1;
+            logger.info( "Got paths promotion request (size:{}): {}", size, json );
         }
         catch ( final IOException e )
         {
@@ -96,7 +97,7 @@ public class PromoteResource
             final PathsPromoteResult result = manager.promotePaths( req, baseUrl );
 
             response = responseHelper.formatOkResponseWithJsonEntity( result );
-            logger.info( "Send promotion result:\n{}", response.getEntity() );
+            logger.info( "Send promotion result: {}", response.getEntity() );
         }
         catch ( PromotionException e )
         {
