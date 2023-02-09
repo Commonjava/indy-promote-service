@@ -399,7 +399,16 @@ public class PromotionManager
         if ( request.getSource().getType() == StoreType.remote )
         {
             final StoreKey sourceKey = request.getSource();
-            final Set<String> missing = getMissing( sourceKey, pending );
+            final Set<String> missing;
+            try
+            {
+                missing = getMissing( sourceKey, pending );
+            }
+            catch (PromotionException e)
+            {
+                return new PathsPromoteResult( request, pending, emptySet(), emptySet(), e.getMessage(), validation );
+            }
+
             if ( !missing.isEmpty() )
             {
                 Set<String> missingChecksums = missing.stream().filter(CHECKSUM_PREDICATE).collect(Collectors.toSet());
@@ -453,7 +462,7 @@ public class PromotionManager
         return result;
     }
 
-    private Set<String> getMissing(StoreKey storeKey, Set<String> paths)
+    private Set<String> getMissing(StoreKey storeKey, Set<String> paths) throws PromotionException
     {
         BatchExistRequest request = new BatchExistRequest();
         request.setFilesystem( storeKey.toString());
@@ -461,8 +470,7 @@ public class PromotionManager
         Response resp = storageService.exist(request);
         if (!isSuccess(resp))
         {
-            logger.warn("Re-download existence check failed, status: {}", resp.getStatus() );
-            return emptySet(); // throw exception? maybe just ignore it and let promotion move forward
+            throw new PromotionException( "Re-download existence check failed, status:" + resp.getStatus() );
         }
         BatchExistResult batchExistResult = resp.readEntity(BatchExistResult.class);
         if ( batchExistResult.getMissing() != null )
