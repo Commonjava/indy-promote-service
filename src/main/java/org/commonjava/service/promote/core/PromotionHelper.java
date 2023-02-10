@@ -45,6 +45,8 @@ public class PromotionHelper
         return compile( ".+/maven-metadata\\.xml(\\.(md5|sha[0-9]+))?" ).asPredicate();
     }
 
+    public final static Predicate<String> CHECKSUM_PREDICATE = isChecksumPredicate();
+
     public static Predicate<String> isChecksumPredicate() {
         return compile( ".+\\.(md5|sha[0-9]+)" ).asPredicate();
     }

@@ -40,6 +40,7 @@ import java.util.*;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
@@ -390,18 +391,46 @@ public class PromotionManager
                                            StringUtils.join( checkResult.errors, "\n" ), validation );
         }
 
-        // re-download missing remote files if any (this may be caused by reasons such as file expiration)
+        final Set<String> errors = new HashSet<>();
+        final Set<String> skipped = new HashSet<>();
+        final Set<String> completed = new HashSet<>();
+
+        // Re-download missing remote files (this may be caused by reasons such as file expiration)
         if ( request.getSource().getType() == StoreType.remote )
         {
-            reDownloadMissing(request.getSource(), pending);
+            final StoreKey sourceKey = request.getSource();
+            final Set<String> missing;
+            try
+            {
+                missing = getMissing( sourceKey, pending );
+            }
+            catch (PromotionException e)
+            {
+                return new PathsPromoteResult( request, pending, emptySet(), emptySet(), e.getMessage(), validation );
+            }
+
+            if ( !missing.isEmpty() )
+            {
+                Set<String> missingChecksums = missing.stream().filter(CHECKSUM_PREDICATE).collect(Collectors.toSet());
+                if ( !missingChecksums.isEmpty() )
+                {
+                    missing.removeAll( missingChecksums );
+                    pending.removeAll( missingChecksums );
+                    skipped.addAll( missingChecksums ); // skip missing checksums
+                }
+                logger.info("Re-download missing normal files, storeKey: {}, size: {}, paths: {}", sourceKey,
+                        missing.size(), missing);
+                missing.forEach( p -> reDownload( sourceKey, p ));
+            }
         }
 
-        final Set<PathTransferResult> results = copy( request );
+        final FileCopyRequest copyRequest = new FileCopyRequest();
+        copyRequest.setFailWhenExists( request.isFailWhenExists() );
+        copyRequest.setSourceFilesystem( request.getSource().toString() );
+        copyRequest.setTargetFilesystem( request.getTarget().toString() );
+        copyRequest.setPaths( pending );
 
-        final List<String> errors = new ArrayList<>();
-        final Set<String> completed = new HashSet<>();
-        final Set<String> skipped = new HashSet<>();
-
+        final Set<PathTransferResult> results = copy( copyRequest );
         results.forEach( result -> {
             if ( result.error != null )
             {
@@ -433,7 +462,7 @@ public class PromotionManager
         return result;
     }
 
-    private boolean reDownloadMissing(StoreKey storeKey, Set<String> paths)
+    private Set<String> getMissing(StoreKey storeKey, Set<String> paths) throws PromotionException
     {
         BatchExistRequest request = new BatchExistRequest();
         request.setFilesystem( storeKey.toString());
@@ -441,17 +470,15 @@ public class PromotionManager
         Response resp = storageService.exist(request);
         if (!isSuccess(resp))
         {
-            logger.warn("Re-download existence check failed, status: {}", resp.getStatus() );
-            return false;
+            throw new PromotionException( "Re-download existence check failed, status:" + resp.getStatus() );
         }
         BatchExistResult batchExistResult = resp.readEntity(BatchExistResult.class);
-        Set<String> missing = batchExistResult.getMissing();
-        if (missing != null && !missing.isEmpty())
+        if ( batchExistResult.getMissing() != null )
         {
-            logger.info("Re-download missing, storeKey: {}, size: {}, paths: {}", storeKey, missing.size(), missing);
-            missing.forEach( p -> reDownload( storeKey, p ));
+            return new HashSet( batchExistResult.getMissing() );
         }
-        return true;
+        logger.debug("Re-download existence check, no missing" );
+        return emptySet();
     }
 
     private void reDownload(StoreKey storeKey, String path)
@@ -476,15 +503,9 @@ public class PromotionManager
         }
     }
 
-    private Set<PathTransferResult> copy(PathsPromoteRequest promoteRequest)
+    private Set<PathTransferResult> copy(FileCopyRequest copyRequest)
     {
-        FileCopyRequest fileCopyRequest = new FileCopyRequest();
-        fileCopyRequest.setFailWhenExists( promoteRequest.isFailWhenExists() );
-        fileCopyRequest.setSourceFilesystem( promoteRequest.getSource().toString() );
-        fileCopyRequest.setTargetFilesystem( promoteRequest.getTarget().toString() );
-        fileCopyRequest.setPaths( promoteRequest.getPaths() );
-
-        Response resp = storageService.copy(fileCopyRequest);
+        Response resp = storageService.copy(copyRequest);
         if (!isSuccess(resp))
         {
             return errResults( "Copy failed, resp status: " + resp.getStatus() );
