@@ -483,23 +483,32 @@ public class PromotionManager
 
     private void reDownload(StoreKey storeKey, String path)
     {
+        Response resp = null;
         try
         {
             logger.debug( "Downloading {}", path );
-            Response r = contentService.retrieve(
+            resp = contentService.retrieve(
                     storeKey.getPackageType(), storeKey.getType().getName(), storeKey.getName(), path );
-            if ( r.getStatus() == Response.Status.OK.getStatusCode() )
+            int status = resp.getStatus();
+            if ( status == Response.Status.OK.getStatusCode() )
             {
                 logger.debug( "Downloaded - {}", path );
             }
             else
             {
-                logger.warn( "Download failed, path: {}, status: {}", path, r.getStatus() );
+                logger.warn( "Download failed, path: {}, status: {}", path, status );
             }
         }
         catch ( Exception e )
         {
             logger.warn( "Download failed, path: " + path, e );
+        }
+        finally
+        {
+            if ( resp != null )
+            {
+                resp.close();
+            }
         }
     }
 
