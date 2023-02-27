@@ -59,6 +59,10 @@ indy_security:
 promote:
     baseDir: "data"
     callbackUri: "callbackUri"
+    threadpools:
+        promote-runner: 8
+        promote-rules-runner: 16
+        promote-rules-batch-executor: 16
 
 storage-service-api/mp-rest/url: http://localhost
 storage-service-api/mp-rest/scope: javax.inject.Singleton
