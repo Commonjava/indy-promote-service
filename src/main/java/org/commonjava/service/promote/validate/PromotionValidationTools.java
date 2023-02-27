@@ -80,7 +80,7 @@ public class PromotionValidationTools
 
     @Inject
     @WeftManaged
-    @ExecutorConfig( named = "promote-validation-rules-executor", threads = 16 )
+    @ExecutorConfig( named = "promote-rules-batch-executor", threads = 16 )
     WeftExecutorService ruleParallelExecutor;
 
     @Inject
@@ -95,7 +95,7 @@ public class PromotionValidationTools
                                      final ThreadPoolExecutor ruleParallelExecutor, final PromoteConfig config )
     {
         this.contentDigester = contentDigester;
-        this.ruleParallelExecutor = new PoolWeftExecutorService( "promote-validation-rules-executor", ruleParallelExecutor );
+        this.ruleParallelExecutor = new PoolWeftExecutorService( "promote-rules-batch-executor", ruleParallelExecutor );
         this.promoteConfig = config;
     }
 

@@ -69,7 +69,7 @@ public class PromotionManager
 
     @WeftManaged
     @Inject
-    @ExecutorConfig( named = "promotion", threads = 8, priority = 8, loadSensitive = ExecutorConfig.BooleanLiteral.TRUE )
+    @ExecutorConfig( named = "promote-runner", threads = 8, priority = 8, loadSensitive = ExecutorConfig.BooleanLiteral.TRUE )
     WeftExecutorService promotionService;
 
     @Inject
