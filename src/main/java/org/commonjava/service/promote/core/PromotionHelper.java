@@ -38,6 +38,8 @@ import static java.util.regex.Pattern.compile;
 @ApplicationScoped
 public class PromotionHelper
 {
+    public static final int DEFAULT_STORAGE_SERVICE_EXIST_CHECK_BATCH_SIZE = 1000;
+
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     public static Predicate<String> isMetadataPredicate()
