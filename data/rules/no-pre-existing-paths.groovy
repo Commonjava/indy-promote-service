@@ -17,12 +17,16 @@ class NoPreExistingPaths implements ValidationRule {
         tools.paralleledInBatch(request.getSourcePaths(), { it ->
             def aref = tools.getArtifact(it);
             if (aref != null) {
-                String checksum = tools.digest(request.getPromoteRequest().getSource(), it, ContentDigest.SHA_256);
+                String sourceChecksum = null;
                 tools.forEach(verifyStoreKeys, { verifyStoreKey ->
-                    if (tools.exists(verifyStoreKey, it)
-                            && !(tools.digest(verifyStoreKey, it, ContentDigest.SHA_256).equals(checksum))) {
-                        synchronized(errors){
-                            errors.add(String.format("%s is already available with different checksum in: %s", it, verifyStoreKey))
+                    if (tools.exists(verifyStoreKey, it)) {
+                        if (sourceChecksum == null) {
+                            sourceChecksum = tools.digest(request.getPromoteRequest().getSource(), it, ContentDigest.SHA_256);
+                        }
+                        if ( !tools.digest(verifyStoreKey, it, ContentDigest.SHA_256).equals(sourceChecksum)) {
+                            synchronized (errors) {
+                                errors.add(String.format("%s is already available with different checksum in: %s", it, verifyStoreKey))
+                            }
                         }
                     }
                 })
