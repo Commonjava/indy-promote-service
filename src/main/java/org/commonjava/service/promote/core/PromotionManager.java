@@ -47,6 +47,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 
 import static org.commonjava.service.promote.core.PromotionHelper.*;
+import static org.commonjava.service.promote.util.Batcher.batch;
 import static org.commonjava.service.promote.util.PoolUtils.detectOverload;
 
 /**
@@ -402,7 +403,7 @@ public class PromotionManager
             final Set<String> missing;
             try
             {
-                missing = getMissing( sourceKey, pending );
+                missing = getMissingInBatch( sourceKey, pending );
             }
             catch (PromotionException e)
             {
@@ -462,6 +463,22 @@ public class PromotionManager
         return result;
     }
 
+    /**
+     * Get missing paths on the store. The request paths count can be very big. We split them if needed.
+     */
+    private Set<String> getMissingInBatch(StoreKey storeKey, Set<String> paths) throws PromotionException
+    {
+        Set<String> ret = new HashSet<>();
+        Collection<Collection<String>> batches = batch( paths, DEFAULT_STORAGE_SERVICE_EXIST_CHECK_BATCH_SIZE );
+        logger.debug( "Get missing in batch, total: {}, batches: {}", paths.size(), batches.size() );
+        for (Collection<String> batch : batches)
+        {
+            ret.addAll( getMissing(storeKey, new HashSet<>( batch )) );
+        }
+        logger.debug( "Get missing in batch, missing: {}", ret.size() );
+        return ret;
+    }
+
     private Set<String> getMissing(StoreKey storeKey, Set<String> paths) throws PromotionException
     {
         BatchExistRequest request = new BatchExistRequest();
@@ -470,14 +487,14 @@ public class PromotionManager
         Response resp = storageService.exist(request);
         if (!isSuccess(resp))
         {
-            throw new PromotionException( "Re-download existence check failed, status:" + resp.getStatus() );
+            throw new PromotionException( "Batch existence check failed, status:" + resp.getStatus() );
         }
         BatchExistResult batchExistResult = resp.readEntity(BatchExistResult.class);
         if ( batchExistResult.getMissing() != null )
         {
             return new HashSet( batchExistResult.getMissing() );
         }
-        logger.debug("Re-download existence check, no missing" );
+        logger.debug("Batch existence check, no missing" );
         return emptySet();
     }
 
