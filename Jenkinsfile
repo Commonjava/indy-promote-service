@@ -59,7 +59,11 @@ pipeline {
             }
         }
         stage('Deploy') {
-            when { branch 'main' }
+            when {
+                allOf {
+                    expression { env.CHANGE_ID == null } // Not pull request
+                }
+            }
             steps {
                 echo "Deploy"
                 sh '${M2_HOME}/bin/mvn help:effective-settings -B -V clean deploy -e'
