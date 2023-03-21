@@ -41,7 +41,8 @@ public class ContentDigester {
     public ContentDigester() {
     }
 
-    public String digest(StoreKey key, String path, ContentDigest digest) throws IOException {
+    public String digest(StoreKey key, String path, ContentDigest digest) throws Exception
+    {
         // retrieve the checksum file if exists
         Response resp = contentService.retrieve(key.getPackageType(), key.getType().getName(), key.getName(), path + digest.getFileExt());
         if ( resp.getStatus() == SC_OK )
