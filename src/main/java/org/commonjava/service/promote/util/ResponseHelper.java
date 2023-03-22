@@ -34,6 +34,7 @@ import java.net.URI;
 import java.util.function.Consumer;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 
 @ApplicationScoped
 public class ResponseHelper
@@ -241,4 +242,20 @@ public class ResponseHelper
         return sw.toString();
     }
 
+    /**
+     * Check whether the target exception is caused by a 404 response.
+     * @param e exception thrown by RestClient
+     */
+    public boolean isRest404Exception(Exception e)
+    {
+        if (e instanceof WebApplicationException)
+        {
+            int st = ((WebApplicationException)e).getResponse().getStatus();
+            if ( st == SC_NOT_FOUND )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }
