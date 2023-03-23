@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.util.Collections.emptyMap;
 import static org.commonjava.service.promote.client.kafka.KafkaEventDispatcher.CHANNEL_PROMOTE_COMPLETE;
 
@@ -44,6 +45,10 @@ public class TestResources
         wireMockServer = new WireMockServer(
                         new WireMockConfiguration().port( 9090 ).extensions( ReturnSameBodyTransformer.class ) );
         wireMockServer.start();
+
+        wireMockServer.stubFor(
+                get( urlEqualTo( "/exist-path" ) ).willReturn( aResponse().withBody( "hello" ) ) );
+
         return emptyMap();
 /*
  * After adding MockPromoteEventConsumer, this is not needed.

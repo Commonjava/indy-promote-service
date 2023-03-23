@@ -32,13 +32,13 @@ public interface ContentService
     Response retrieve(final @PathParam( "package" ) String packageName,
                       final @PathParam( "type") String type,
                       final @PathParam( "name") String name,
-                      final @PathParam( "path" ) String path);
+                      final @PathParam( "path" ) String path) throws Exception;
 
     @HEAD
     @Path("{package}/{type: (hosted|group|remote)}/{name}/{path: (.*)}")
     Response exists(final @PathParam( "package" ) String packageName,
                     final @PathParam( "type") String type,
                     final @PathParam( "name") String name,
-                    final @PathParam( "path" ) String path);
+                    final @PathParam( "path" ) String path) throws Exception;
 
 }

@@ -33,12 +33,14 @@ import org.commonjava.service.promote.core.ContentDigester;
 import org.commonjava.service.promote.core.IndyObjectMapper;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.util.ContentDigest;
+import org.commonjava.service.promote.util.ResponseHelper;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.*;
@@ -49,6 +51,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.commonjava.service.promote.util.Batcher.batch;
 import static org.commonjava.service.promote.util.Batcher.getParalleledBatchSize;
@@ -68,6 +71,9 @@ public class PromotionValidationTools
     //private static final String ITERATION_DEPTH = "promotion-validation-parallel-depth";
 
     //private static final String ITERATION_ITEM = "promotion-validation-parallel-item";
+
+    @Inject
+    ResponseHelper responseHelper;
 
     @Inject
     ContentDigester contentDigester;
@@ -469,12 +475,23 @@ public class PromotionValidationTools
     public boolean exists( final StoreKey store, final String path )
             throws Exception
     {
-        Response resp = contentService.exists(store.getPackageType(), store.getType().getName(), store.getName(), path);
-        if ( resp.getStatus() == SC_OK )
+        try
         {
-            return true;
+            Response resp = contentService.exists(store.getPackageType(), store.getType().getName(), store.getName(), path);
+            if ( resp.getStatus() == SC_OK )
+            {
+                return true;
+            }
+            return false;
         }
-        return false;
+        catch (Exception e)
+        {
+            if (responseHelper.isRest404Exception(e))
+            {
+                return false;
+            }
+            throw e;
+        }
     }
 
 /*
