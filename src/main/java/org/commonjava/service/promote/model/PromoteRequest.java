@@ -22,13 +22,9 @@ public interface PromoteRequest
 {
     StoreKey getSource();
 
-    PromoteRequest setSource( StoreKey source );
-
     StoreKey getTarget();
 
     boolean isDryRun();
-
-    PromoteRequest setDryRun( boolean dryRun );
 
     boolean isFireEvents();
 

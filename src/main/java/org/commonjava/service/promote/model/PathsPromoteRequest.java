@@ -83,7 +83,6 @@ public class PathsPromoteRequest
         return source;
     }
 
-    @Override
     public PathsPromoteRequest setSource( final StoreKey source )
     {
         this.source = source;
