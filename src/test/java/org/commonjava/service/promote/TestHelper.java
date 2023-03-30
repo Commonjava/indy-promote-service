@@ -77,9 +77,14 @@ public class TestHelper
 
     public PathsPromoteResult doPromote(final PathsPromoteRequest request) throws Exception
     {
+        return doPromote( mapper.writeValueAsString(request) );
+    }
+
+    public PathsPromoteResult doPromote(final String requestJson) throws Exception
+    {
         Response response =
                 given().when()
-                        .body(mapper.writeValueAsString(request))
+                        .body(requestJson)
                         .header("Content-Type", APPLICATION_JSON)
                         .post(PROMOTE_PATH);
 
@@ -89,6 +94,7 @@ public class TestHelper
         PathsPromoteResult result = mapper.readValue( content, PathsPromoteResult.class );
         assertNotNull( result );
 
+        PathsPromoteRequest request = mapper.readValue(requestJson, PathsPromoteRequest.class);
         assertThat(result.getRequest().getSource(), equalTo(request.getSource()));
         assertThat(result.getRequest().getTarget(), equalTo(request.getTarget()));
         return result;
