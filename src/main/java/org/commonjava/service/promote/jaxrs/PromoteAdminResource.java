@@ -15,7 +15,6 @@
  */
 package org.commonjava.service.promote.jaxrs;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -24,6 +23,8 @@ import org.commonjava.service.promote.core.IndyObjectMapper;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.ValidationRuleDTO;
 import org.commonjava.service.promote.model.ValidationRuleSet;
+import org.commonjava.service.promote.tracking.PromoteTrackingManager;
+import org.commonjava.service.promote.model.PromoteTrackingRecord;
 import org.commonjava.service.promote.util.ResponseHelper;
 import org.commonjava.service.promote.validate.PromoteValidationsManager;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
@@ -51,6 +52,9 @@ public class PromoteAdminResource
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     public static final String PROMOTION_ADMIN_API = "/api/promotion/admin";
+
+    @Inject
+    PromoteTrackingManager trackingManager;
 
     @Inject
     PromoteValidationsManager validationsManager;
@@ -187,6 +191,27 @@ public class PromoteAdminResource
                 return Response.status( Response.Status.NOT_FOUND ).build();
             }
         } );
+    }
+
+    @ApiOperation( "Get promotion result by trackingId" )
+    @ApiResponses( { @ApiResponse( code = 200, response = Response.class,
+            message = "The promotion result" ),
+            @ApiResponse( code = 404, message = "The promotion result doesn't exist" ) } )
+    @Path( "/tracking/{trackingId}" )
+    @GET
+    @Produces( APPLICATION_JSON )
+    public Response getResultByTrackingId( final @PathParam( "trackingId" ) String trackingId,
+                                      final @Context SecurityContext securityContext, final @Context UriInfo uriInfo )
+    {
+        Optional<PromoteTrackingRecord> record = trackingManager.getTrackingRecord( trackingId );
+        if ( record.isPresent() )
+        {
+            return Response.ok( record.get() ).build();
+        }
+        else
+        {
+            return Response.status( Response.Status.NOT_FOUND ).build();
+        }
     }
 
     private Response checkEnabledAnd( Supplier<Response> responseSupplier )
