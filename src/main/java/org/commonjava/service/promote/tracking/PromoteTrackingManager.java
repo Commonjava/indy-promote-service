@@ -15,16 +15,141 @@
  */
 package org.commonjava.service.promote.tracking;
 
-import org.commonjava.service.promote.model.PromoteTrackingRecord;
+import com.datastax.driver.core.*;
+import com.datastax.driver.mapping.Mapper;
+import com.datastax.driver.mapping.MappingManager;
+import com.datastax.driver.mapping.Result;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.commonjava.service.promote.core.IndyObjectMapper;
+import org.commonjava.service.promote.model.PathsPromoteResult;
+import org.commonjava.service.promote.model.PromoteTrackingRecords;
+import org.commonjava.service.promote.tracking.cassandra.CassandraClient;
+import org.commonjava.service.promote.tracking.cassandra.CassandraConfiguration;
+import org.commonjava.service.promote.tracking.cassandra.DtxPromoteRecord;
+import org.commonjava.service.promote.tracking.cassandra.SchemaUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import java.util.Optional;
+import javax.inject.Inject;
+import java.util.*;
+
+import static org.commonjava.service.promote.tracking.cassandra.SchemaUtils.TABLE_TRACKING;
 
 @ApplicationScoped
 public class PromoteTrackingManager
 {
-    public Optional<PromoteTrackingRecord> getTrackingRecord(String trackingId )
-    {
-        return null; // TODO
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
+
+    @Inject
+    CassandraClient client;
+
+    @Inject
+    CassandraConfiguration config;
+
+    @Inject
+    IndyObjectMapper objectMapper;
+
+    private boolean trackingEnabled; // if tracking is enabled
+
+    private Session session;
+
+    private PreparedStatement preparedTrackingRecordQuery;
+
+    private Mapper<DtxPromoteRecord> promoteRecordMapper;
+
+    public PromoteTrackingManager() {
     }
+
+    public PromoteTrackingManager(CassandraClient client, CassandraConfiguration config )
+    {
+        this.client = client;
+        this.config = config;
+        this.objectMapper = new IndyObjectMapper();
+        this.objectMapper.init();
+        init();
+    }
+
+    @PostConstruct
+    public void init()
+    {
+        if (!config.isEnabled())
+        {
+            logger.info("Cassandra not enabled, skip.");
+            return;
+        }
+
+        logger.info("Init Cassandra promote tracking manager.");
+        String keySpace = config.getKeyspace();
+
+        session = client.getSession(keySpace);
+        session.execute(SchemaUtils.getSchemaCreateKeyspace(keySpace, config.getKeyspaceReplicas()));
+        session.execute(SchemaUtils.getSchemaCreateTableTracking(keySpace));
+
+        MappingManager mappingManager = new MappingManager(session);
+        promoteRecordMapper = mappingManager.mapper(DtxPromoteRecord.class, keySpace);
+
+        preparedTrackingRecordQuery = session.prepare("SELECT * FROM " + keySpace + "." + TABLE_TRACKING
+                + " WHERE trackingId=?");
+
+        trackingEnabled = true;
+    }
+
+    public Optional<PromoteTrackingRecords> getTrackingRecords( String trackingId )
+    {
+        if (!trackingEnabled)
+        {
+            logger.debug("Tracking not enabled, skip getTrackingRecords");
+            return Optional.empty();
+        }
+
+        BoundStatement bound = preparedTrackingRecordQuery.bind( trackingId );
+        ResultSet resultSet = session.execute( bound );
+        Result<DtxPromoteRecord> records = promoteRecordMapper.map(resultSet);
+
+        Map<String, PathsPromoteResult> resultMap = new HashMap<>();
+        records.forEach( record -> {
+            PathsPromoteResult ret = toPathsPromoteResult( record.getResult() );
+            if ( ret != null )
+            {
+                resultMap.put( ret.getRequest().getPromotionId(), ret );
+            }
+        } );
+
+        if ( resultMap.isEmpty() )
+        {
+            return Optional.empty();
+        }
+        return Optional.of( new PromoteTrackingRecords( trackingId, resultMap ));
+    }
+
+    public void addTrackingRecord( String trackingId, PathsPromoteResult result ) throws Exception
+    {
+        if (!trackingEnabled)
+        {
+            logger.debug("Tracking not enabled, skip addTrackingRecord");
+            return;
+        }
+
+        DtxPromoteRecord dtxPromoteRecord = new DtxPromoteRecord();
+        dtxPromoteRecord.setTrackingId(trackingId);
+        dtxPromoteRecord.setPromotionId(result.getRequest().getPromotionId());
+        dtxPromoteRecord.setResult(objectMapper.writeValueAsString( result ));
+        promoteRecordMapper.save(dtxPromoteRecord);
+    }
+
+    private PathsPromoteResult toPathsPromoteResult(String result)
+    {
+        try
+        {
+            return objectMapper.readValue( result, PathsPromoteResult.class );
+        }
+        catch (JsonProcessingException e)
+        {
+            logger.error( "Failed to readValue, result: " + result,  e);
+        }
+        return null;
+    }
+
 }

@@ -17,11 +17,11 @@ package org.commonjava.service.promote.model;
 
 import java.util.Map;
 
-public class PromoteTrackingRecord
+public class PromoteTrackingRecords
 {
     private String trackingId; // user specified tracking id
 
-    private Map<String, PathsPromoteResult> results; // // promotion uuid -> result
+    private Map<String, PathsPromoteResult> resultMap; // promotion uuid -> result
 
     public String getTrackingId()
     {
@@ -33,23 +33,31 @@ public class PromoteTrackingRecord
         this.trackingId = trackingId;
     }
 
-    public Map<String, PathsPromoteResult> getResults()
+    public Map<String, PathsPromoteResult> getResultMap()
     {
-        return results;
+        return resultMap;
     }
 
-    public void setResults(Map<String, PathsPromoteResult> results)
+    public void setResultMap(Map<String, PathsPromoteResult> resultMap)
     {
-        this.results = results;
+        this.resultMap = resultMap;
     }
 
-    public PromoteTrackingRecord()
+    public PromoteTrackingRecords()
     {
     }
 
-    public PromoteTrackingRecord(String trackingId, Map<String, PathsPromoteResult> results)
+    public PromoteTrackingRecords(String trackingId, Map<String, PathsPromoteResult> resultMap)
     {
         this.trackingId = trackingId;
-        this.results = results;
+        this.resultMap = resultMap;
+    }
+
+    @Override
+    public String toString() {
+        return "PromoteTrackingRecords{" +
+                "trackingId='" + trackingId + '\'' +
+                ", resultMap=" + resultMap +
+                '}';
     }
 }

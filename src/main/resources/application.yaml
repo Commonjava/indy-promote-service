@@ -6,9 +6,6 @@ quarkus:
         limits:
           max-body-size: 500M
 
-    package:
-        uber-jar: true
-
     # Logging (disable console on prod)
     log:
         level: INFO
@@ -106,3 +103,16 @@ kafka:
 #                promote-complete:
 #                    connector: smallrye-in-memory
 #                    topic: promote-complete
+
+"%test":
+    cassandra:
+        enabled: true
+        host: localhost
+        port: 9142
+        user: cassandra
+        pass: cassandra
+        keyspace: promote_tracking
+        keyspaceReplicas: 1
+        retries:
+            read: 3
+            write: 3

@@ -22,9 +22,6 @@ quarkus:
         limits:
           max-body-size: 500M
 
-    package:
-        uber-jar: true
-
     # Logging (disable console on prod)
     log:
         level: INFO
@@ -59,3 +56,15 @@ content-service-api/mp-rest/scope: javax.inject.Singleton
 kafka:
     bootstrap:
         servers: "localhost:9092"
+
+#cassandra:
+#    enabled: true
+#    host: localhost
+#    port: 9042
+#    user: cassandra
+#    pass: cassandra
+#    keyspace: promote_tracking
+#    keyspaceReplicas: 1
+#    retries:
+#        read: 3
+#        write: 3
