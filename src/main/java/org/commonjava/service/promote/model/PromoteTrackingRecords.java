@@ -16,6 +16,7 @@
 package org.commonjava.service.promote.model;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class PromoteTrackingRecords
 {
@@ -51,6 +52,21 @@ public class PromoteTrackingRecords
     {
         this.trackingId = trackingId;
         this.resultMap = resultMap;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PromoteTrackingRecords that = (PromoteTrackingRecords) o;
+        return trackingId.equals(that.trackingId);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(trackingId);
     }
 
     @Override
