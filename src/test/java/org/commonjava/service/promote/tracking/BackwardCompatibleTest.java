@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.service.promote;
+package org.commonjava.service.promote.tracking;
 
 import io.quarkus.test.junit.QuarkusTest;
 import net.bytebuddy.utility.RandomString;
+import org.commonjava.service.promote.TestHelper;
 import org.commonjava.service.promote.model.PathsPromoteResult;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.StoreType;

@@ -84,6 +84,12 @@ public class PromoteTrackingManager
         String keySpace = config.getKeyspace();
 
         session = client.getSession(keySpace);
+        if ( session == null )
+        {
+            logger.info("Failed to get Cassandra session");
+            return;
+        }
+
         session.execute(SchemaUtils.getSchemaCreateKeyspace(keySpace, config.getKeyspaceReplicas()));
         session.execute(SchemaUtils.getSchemaCreateTableTracking(keySpace));
 
@@ -137,6 +143,8 @@ public class PromoteTrackingManager
         dtxPromoteRecord.setPromotionId(result.getRequest().getPromotionId());
         dtxPromoteRecord.setResult(objectMapper.writeValueAsString( result ));
         promoteRecordMapper.save(dtxPromoteRecord);
+
+        logger.debug("addTrackingRecord, trackingId: {}", trackingId);
     }
 
     private PathsPromoteResult toPathsPromoteResult(String result)

@@ -27,6 +27,7 @@ import org.commonjava.service.promote.config.PromoteConfig;
 import org.commonjava.service.promote.exception.PromotionException;
 import org.commonjava.service.promote.model.*;
 
+import org.commonjava.service.promote.tracking.PromoteTrackingManager;
 import org.commonjava.service.promote.validate.PromotionValidator;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 
 import static org.commonjava.service.promote.core.PromotionHelper.*;
@@ -67,6 +69,9 @@ public class PromotionManager
 
     @Inject
     PathConflictManager conflictManager;
+
+    @Inject
+    PromoteTrackingManager promoteTrackingManager;
 
     @WeftManaged
     @Inject
@@ -160,6 +165,13 @@ public class PromotionManager
                                 + request.getSource() + ", Reason: " + getStackTrace( ex );
                 logger.warn( msg );
                 ret = new PathsPromoteResult( request, msg );
+            }
+
+            // Add tracking record, skip if dry-run or not present
+            String trackingId = request.getTrackingId();
+            if ( !request.isDryRun() && isNotBlank(trackingId) )
+            {
+                promoteTrackingManager.addTrackingRecord( trackingId, ret );
             }
 
             if ( ret.getRequest().getCallback() != null )

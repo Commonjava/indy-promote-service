@@ -50,12 +50,6 @@ public class PromoteTrackingManagerTest
         EmbeddedCassandraServerHelper.startEmbeddedCassandra();
     }
 
-    @AfterAll
-    public static void stop()
-    {
-        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
-    }
-
     @Test
     public void run() throws Exception
     {
