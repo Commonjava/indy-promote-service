@@ -24,7 +24,7 @@ import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.ValidationRuleDTO;
 import org.commonjava.service.promote.model.ValidationRuleSet;
 import org.commonjava.service.promote.tracking.PromoteTrackingManager;
-import org.commonjava.service.promote.model.PromoteTrackingRecord;
+import org.commonjava.service.promote.model.PromoteTrackingRecords;
 import org.commonjava.service.promote.util.ResponseHelper;
 import org.commonjava.service.promote.validate.PromoteValidationsManager;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
@@ -193,20 +193,20 @@ public class PromoteAdminResource
         } );
     }
 
-    @ApiOperation( "Get promotion result by trackingId" )
+    @ApiOperation( "Get promotion results by trackingId" )
     @ApiResponses( { @ApiResponse( code = 200, response = Response.class,
-            message = "The promotion result" ),
-            @ApiResponse( code = 404, message = "The promotion result doesn't exist" ) } )
+            message = "The promotion results" ),
+            @ApiResponse( code = 404, message = "The promotion results do not exist" ) } )
     @Path( "/tracking/{trackingId}" )
     @GET
     @Produces( APPLICATION_JSON )
-    public Response getResultByTrackingId( final @PathParam( "trackingId" ) String trackingId,
+    public Response getRecordsByTrackingId( final @PathParam( "trackingId" ) String trackingId,
                                       final @Context SecurityContext securityContext, final @Context UriInfo uriInfo )
     {
-        Optional<PromoteTrackingRecord> record = trackingManager.getTrackingRecord( trackingId );
-        if ( record.isPresent() )
+        Optional<PromoteTrackingRecords> records = trackingManager.getTrackingRecords( trackingId );
+        if ( records.isPresent() )
         {
-            return Response.ok( record.get() ).build();
+            return Response.ok( records.get() ).build();
         }
         else
         {
