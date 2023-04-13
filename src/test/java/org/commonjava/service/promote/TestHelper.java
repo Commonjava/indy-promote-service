@@ -21,6 +21,7 @@ import org.commonjava.service.promote.client.storage.StorageService;
 import org.commonjava.service.promote.core.IndyObjectMapper;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.PathsPromoteResult;
+import org.commonjava.service.promote.model.PromoteTrackingRecords;
 import org.commonjava.service.promote.model.StoreKey;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
@@ -35,6 +36,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.commonjava.service.promote.PromoteResourceTest.PROMOTE_PATH;
 import static org.commonjava.service.promote.PromoteResourceTest.ROLLBACK_PATH;
+import static org.commonjava.service.promote.jaxrs.PromoteAdminResource.PROMOTION_ADMIN_API;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -112,4 +114,20 @@ public class TestHelper
         //System.out.println(">>>\n" + content);
         return mapper.readValue( content, PathsPromoteResult.class );
     }
+
+    public PromoteTrackingRecords getTrackingRecords(final String trackingId) throws Exception
+    {
+        Response response = given().when()
+                .get(PROMOTION_ADMIN_API + "/tracking/" + trackingId);
+
+        if ( response.statusCode() == 404 )
+        {
+            return null;
+        }
+
+        String content = response.getBody().asString();
+        //System.out.println(">>>\n" + content);
+        return mapper.readValue( content, PromoteTrackingRecords.class );
+    }
+
 }
