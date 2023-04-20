@@ -57,6 +57,8 @@ public class PromoteTrackingManager
 
     private PreparedStatement preparedTrackingRecordQuery;
 
+    private PreparedStatement preparedTrackingRecordRollback;
+
     private Mapper<DtxPromoteRecord> promoteRecordMapper;
 
     public PromoteTrackingManager() {
@@ -99,6 +101,9 @@ public class PromoteTrackingManager
         preparedTrackingRecordQuery = session.prepare("SELECT * FROM " + keySpace + "." + TABLE_TRACKING
                 + " WHERE trackingId=?");
 
+        preparedTrackingRecordRollback = session.prepare("UPDATE " + keySpace + "." + TABLE_TRACKING
+                + " SET rollback=True WHERE trackingId=? AND promotionId=?");
+
         trackingEnabled = true;
     }
 
@@ -116,10 +121,17 @@ public class PromoteTrackingManager
 
         Map<String, PathsPromoteResult> resultMap = new HashMap<>();
         records.forEach( record -> {
-            PathsPromoteResult ret = toPathsPromoteResult( record.getResult() );
-            if ( ret != null )
+            if ( record.isRollback() )
             {
-                resultMap.put( ret.getRequest().getPromotionId(), ret );
+                logger.debug("Skip rollback record, trackingId: {}, promotionId: {}", trackingId, record.getPromotionId());
+            }
+            else
+            {
+                PathsPromoteResult ret = toPathsPromoteResult( record.getResult() );
+                if ( ret != null )
+                {
+                    resultMap.put( ret.getRequest().getPromotionId(), ret );
+                }
             }
         } );
 
@@ -160,4 +172,9 @@ public class PromoteTrackingManager
         return null;
     }
 
+    public void rollbackTrackingRecord(String trackingId, String promotionId)
+    {
+        BoundStatement bound = preparedTrackingRecordRollback.bind( trackingId, promotionId );
+        session.execute( bound );
+    }
 }

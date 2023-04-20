@@ -29,8 +29,7 @@ import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
 public class PromoteTrackingTest
@@ -67,24 +66,33 @@ public class PromoteTrackingTest
         PromoteTrackingRecords records = testHelper.getTrackingRecords( trackingId );
         assertThat( records == null, equalTo( true ) );
 
-        // Nominal
+        // Nominal promotion
         PathsPromoteRequest request = new PathsPromoteRequest(source, target)
                 .setTrackingId(trackingId);
         String promotionId = request.getPromotionId();
+        testHelper.doPromote(request);
 
-        testHelper.doPromote( request );
+        // Get tracking records
         records = testHelper.getTrackingRecords( trackingId );
         assertNotNull( records );
         assertEquals(trackingId, records.getTrackingId());
-
         Map<String, PathsPromoteResult> resultMap = records.getResultMap();
         assertThat( resultMap.size(), equalTo( 1 ) );
+
+        // Get result from promotion record
         PathsPromoteResult result = resultMap.get(promotionId);
         Set<String> pending = result.getPendingPaths();
         assertThat( pending == null || pending.isEmpty(), equalTo( true ) );
         Set<String> completed = result.getCompletedPaths();
         assertThat( completed, notNullValue() );
         assertThat( result.getError(), nullValue() );
+
+        // Rollback the previous promotion
+        testHelper.doRollback(result);
+
+        // Get tracking records again
+        records = testHelper.getTrackingRecords( trackingId );
+        assertNull( records );
     }
 
 }

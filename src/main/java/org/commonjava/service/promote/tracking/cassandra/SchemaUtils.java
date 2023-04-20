@@ -30,6 +30,7 @@ public class SchemaUtils
         return "CREATE TABLE IF NOT EXISTS " + keySpace + "." + TABLE_TRACKING + " ("
                 + "trackingId varchar,"
                 + "promotionId varchar,"
+                + "rollback boolean,"
                 + "result text,"
                 + "PRIMARY KEY (trackingId, promotionId)"
                 + ");";
