@@ -32,6 +32,9 @@ public class DtxPromoteRecord
     private String promotionId;
 
     @Column
+    private boolean rollback;
+
+    @Column
     private String result;
 
     public String getTrackingId() {
@@ -56,5 +59,13 @@ public class DtxPromoteRecord
 
     public void setResult(String result) {
         this.result = result;
+    }
+
+    public boolean isRollback() {
+        return rollback;
+    }
+
+    public void setRollback(boolean rollback) {
+        this.rollback = rollback;
     }
 }

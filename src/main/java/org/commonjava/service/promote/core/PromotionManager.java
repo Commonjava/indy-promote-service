@@ -257,6 +257,13 @@ public class PromotionManager
             {
                 result.setPendingPaths( result.getCompletedPaths() );
                 result.setCompletedPaths( null );
+
+                // Remove tracking record, skip if dry-run or not present
+                String trackingId = request.getTrackingId();
+                if ( !request.isDryRun() && isNotBlank(trackingId) )
+                {
+                    promoteTrackingManager.rollbackTrackingRecord( trackingId, request.getPromotionId() );
+                }
             }
             else
             {
