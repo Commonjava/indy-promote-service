@@ -169,7 +169,7 @@ public class CassandraConfiguration
 
     public String getKeyspace()
     {
-        return keyspace.orElse( "" );
+        return keyspace.orElse( "promote" );
     }
 
     public void setKeyspace( String keyspace )
