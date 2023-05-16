@@ -21,12 +21,11 @@ import com.datastax.driver.mapping.MappingManager;
 import com.datastax.driver.mapping.Result;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.commonjava.service.promote.core.IndyObjectMapper;
+import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.PathsPromoteResult;
+import org.commonjava.service.promote.model.PromoteQueryByPath;
 import org.commonjava.service.promote.model.PromoteTrackingRecords;
-import org.commonjava.service.promote.tracking.cassandra.CassandraClient;
-import org.commonjava.service.promote.tracking.cassandra.CassandraConfiguration;
-import org.commonjava.service.promote.tracking.cassandra.DtxPromoteRecord;
-import org.commonjava.service.promote.tracking.cassandra.SchemaUtils;
+import org.commonjava.service.promote.tracking.cassandra.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +60,8 @@ public class PromoteTrackingManager
 
     private Mapper<DtxPromoteRecord> promoteRecordMapper;
 
+    private Mapper<DtxPromoteQueryByPath> promoteQueryByPathMapper;
+
     public PromoteTrackingManager() {
     }
 
@@ -94,9 +95,11 @@ public class PromoteTrackingManager
 
         session.execute(SchemaUtils.getSchemaCreateKeyspace(keySpace, config.getKeyspaceReplicas()));
         session.execute(SchemaUtils.getSchemaCreateTableTracking(keySpace));
+        session.execute(SchemaUtils.getSchemaCreateTableQueryByPath(keySpace));
 
         MappingManager mappingManager = new MappingManager(session);
         promoteRecordMapper = mappingManager.mapper(DtxPromoteRecord.class, keySpace);
+        promoteQueryByPathMapper = mappingManager.mapper(DtxPromoteQueryByPath.class, keySpace);
 
         preparedTrackingRecordQuery = session.prepare("SELECT * FROM " + keySpace + "." + TABLE_TRACKING
                 + " WHERE trackingId=?");
@@ -156,7 +159,36 @@ public class PromoteTrackingManager
         dtxPromoteRecord.setResult(objectMapper.writeValueAsString( result ));
         promoteRecordMapper.save(dtxPromoteRecord);
 
-        logger.debug("addTrackingRecord, trackingId: {}", trackingId);
+        // Also update query-by-path table
+        updateQueryByPath(trackingId, result);
+
+        logger.debug("addTrackingRecord done, trackingId: {}", trackingId);
+    }
+
+    public Optional<PromoteQueryByPath> queryByRepoAndPath( String repo, String path )
+    {
+        // If the value is null, ofNullable returns an empty instance of the Optional class
+        return Optional.ofNullable(promoteQueryByPathMapper.get(repo, path));
+    }
+
+    private void updateQueryByPath( String trackingId, PathsPromoteResult result )
+    {
+        Set<String> completed = result.getCompletedPaths();
+        if ( completed != null )
+        {
+            PathsPromoteRequest req = result.getRequest();
+            String target = req.getTarget().toString();
+            String source = req.getSource().toString();
+            completed.forEach( path -> {
+                DtxPromoteQueryByPath et = new DtxPromoteQueryByPath();
+                et.setTarget(target);
+                et.setPath(path);
+                et.setTrackingId(trackingId);
+                et.setSource(source);
+                promoteQueryByPathMapper.saveAsync( et );
+            });
+            logger.debug("updateQueryByPath, paths: {}", completed.size());
+        }
     }
 
     private PathsPromoteResult toPathsPromoteResult(String result)

@@ -18,13 +18,14 @@ package org.commonjava.service.promote.tracking.cassandra;
 import com.datastax.driver.mapping.annotations.Column;
 import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.datastax.driver.mapping.annotations.Table;
+import org.commonjava.service.promote.model.PromoteQueryByPath;
 
 import java.util.Objects;
 
 import static org.commonjava.service.promote.tracking.cassandra.SchemaUtils.TABLE_QUERY_BY_PATH;
 
 @Table( name = TABLE_QUERY_BY_PATH, readConsistency = "QUORUM", writeConsistency = "QUORUM" )
-public class DtxPromoteQueryByPath
+public class DtxPromoteQueryByPath implements PromoteQueryByPath
 {
     @PartitionKey(0)
     private String target;
@@ -38,6 +39,7 @@ public class DtxPromoteQueryByPath
     @Column
     private String source;
 
+    @Override
     public String getTarget() {
         return target;
     }
@@ -46,6 +48,7 @@ public class DtxPromoteQueryByPath
         this.target = target;
     }
 
+    @Override
     public String getPath() {
         return path;
     }
@@ -54,6 +57,7 @@ public class DtxPromoteQueryByPath
         this.path = path;
     }
 
+    @Override
     public String getTrackingId() {
         return trackingId;
     }
@@ -62,6 +66,7 @@ public class DtxPromoteQueryByPath
         this.trackingId = trackingId;
     }
 
+    @Override
     public String getSource() {
         return source;
     }
