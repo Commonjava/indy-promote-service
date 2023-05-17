@@ -35,6 +35,7 @@ import javax.inject.Inject;
 import java.util.*;
 
 import static org.commonjava.service.promote.tracking.cassandra.SchemaUtils.TABLE_TRACKING;
+import static org.commonjava.service.promote.util.PathUtils.ROOT;
 
 @ApplicationScoped
 public class PromoteTrackingManager
@@ -182,13 +183,25 @@ public class PromoteTrackingManager
             completed.forEach( path -> {
                 DtxPromoteQueryByPath et = new DtxPromoteQueryByPath();
                 et.setTarget(target);
-                et.setPath(path);
+                et.setPath(normalizeTrackedPath(path));
                 et.setTrackingId(trackingId);
                 et.setSource(source);
                 promoteQueryByPathMapper.saveAsync( et );
             });
-            logger.debug("updateQueryByPath, paths: {}", completed.size());
+            logger.debug("updateQueryByPath, size: {}", completed.size());
         }
+    }
+
+    /**
+     * Promoted paths were sent by client. Usually they begin with '/'. For querying purpose, we prepend '/' if otherwise.
+     */
+    public static String normalizeTrackedPath(String path)
+    {
+        if (path.startsWith(ROOT))
+        {
+            return path;
+        }
+        return ROOT + path;
     }
 
     private PathsPromoteResult toPathsPromoteResult(String result)

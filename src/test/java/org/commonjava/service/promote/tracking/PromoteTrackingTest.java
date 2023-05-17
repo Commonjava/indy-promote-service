@@ -87,6 +87,12 @@ public class PromoteTrackingTest
         assertThat( completed, notNullValue() );
         assertThat( result.getError(), nullValue() );
 
+        // Query by repo+path
+        PromoteQueryByPath queryByPathResult = testHelper.queryByPath(target, path1);
+        assertThat( queryByPathResult, notNullValue() );
+        assertThat( queryByPathResult.getTrackingId(), equalTo(trackingId) );
+        assertThat( queryByPathResult.getSource(), equalTo( source.toString() ));
+
         // Rollback the previous promotion
         testHelper.doRollback(result);
 

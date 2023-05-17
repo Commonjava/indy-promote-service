@@ -40,6 +40,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.commonjava.service.promote.tracking.PromoteTrackingManager.normalizeTrackedPath;
 
 @Tag( name = "Promote Administration", description = "Resource for managing configurations for promotion." )
 @Path( PromoteAdminResource.PROMOTION_ADMIN_API )
@@ -225,7 +226,9 @@ public class PromoteAdminResource
                                         final @Context SecurityContext securityContext, final @Context UriInfo uriInfo )
     {
         StoreKey repo = new StoreKey(packageType, StoreType.valueOf(type), name);
-        Optional<PromoteQueryByPath> records = trackingManager.queryByRepoAndPath( repo.toString(), path );
+        String trackedPath = normalizeTrackedPath(path);
+        logger.debug("Query by repo+path, repo: {}, trackedPath: {}", repo, trackedPath);
+        Optional<PromoteQueryByPath> records = trackingManager.queryByRepoAndPath( repo.toString(), trackedPath );
         if ( records.isPresent() )
         {
             return Response.ok( records.get() ).build();
