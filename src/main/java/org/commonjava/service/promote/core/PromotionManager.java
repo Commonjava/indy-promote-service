@@ -255,14 +255,15 @@ public class PromotionManager
 
             if ( ret.succeeded() )
             {
-                result.setPendingPaths( result.getCompletedPaths() );
+                Set<String> originalCompleted = result.getCompletedPaths();
+                result.setPendingPaths( originalCompleted );
                 result.setCompletedPaths( null );
 
                 // Remove tracking record, skip if dry-run or not present
                 String trackingId = request.getTrackingId();
                 if ( !request.isDryRun() && isNotBlank(trackingId) )
                 {
-                    promoteTrackingManager.rollbackTrackingRecord( trackingId, request.getPromotionId() );
+                    promoteTrackingManager.rollbackTrackingRecord( trackingId, request, originalCompleted );
                 }
             }
             else

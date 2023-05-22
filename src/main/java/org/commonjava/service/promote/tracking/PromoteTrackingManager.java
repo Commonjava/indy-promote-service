@@ -161,9 +161,9 @@ public class PromoteTrackingManager
         promoteRecordMapper.save(dtxPromoteRecord);
 
         // Also update query-by-path table
-        updateQueryByPath(trackingId, result);
+        updateQueryByPath(trackingId, result.getRequest(), result.getCompletedPaths(), false);
 
-        logger.debug("addTrackingRecord done, trackingId: {}", trackingId);
+        logger.debug("Add tracking record done, trackingId: {}", trackingId);
     }
 
     public Optional<PromoteQueryByPath> queryByRepoAndPath( String repo, String path )
@@ -172,23 +172,23 @@ public class PromoteTrackingManager
         return Optional.ofNullable(promoteQueryByPathMapper.get(repo, path));
     }
 
-    private void updateQueryByPath( String trackingId, PathsPromoteResult result )
+    private void updateQueryByPath(String trackingId, PathsPromoteRequest request, Set<String> completedPaths,
+                                   boolean rollback)
     {
-        Set<String> completed = result.getCompletedPaths();
-        if ( completed != null )
+        if ( completedPaths != null )
         {
-            PathsPromoteRequest req = result.getRequest();
-            String target = req.getTarget().toString();
-            String source = req.getSource().toString();
-            completed.forEach( path -> {
+            String target = request.getTarget().toString();
+            String source = request.getSource().toString();
+            completedPaths.forEach( path -> {
                 DtxPromoteQueryByPath et = new DtxPromoteQueryByPath();
                 et.setTarget(target);
                 et.setPath(normalizeTrackedPath(path));
+                et.setRollback(rollback);
                 et.setTrackingId(trackingId);
                 et.setSource(source);
                 promoteQueryByPathMapper.saveAsync( et );
             });
-            logger.debug("updateQueryByPath, size: {}", completed.size());
+            logger.debug("Update query-by-path, rollback: {}, size: {}", rollback, completedPaths.size());
         }
     }
 
@@ -217,9 +217,12 @@ public class PromoteTrackingManager
         return null;
     }
 
-    public void rollbackTrackingRecord(String trackingId, String promotionId)
+    public void rollbackTrackingRecord(String trackingId, PathsPromoteRequest request, Set<String> completedPaths)
     {
-        BoundStatement bound = preparedTrackingRecordRollback.bind( trackingId, promotionId );
+        BoundStatement bound = preparedTrackingRecordRollback.bind( trackingId, request.getPromotionId() );
         session.execute( bound );
+
+        // Update query-by-path table to set the rollback flag
+        updateQueryByPath(trackingId, request, completedPaths, true);
     }
 }

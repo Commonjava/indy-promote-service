@@ -34,6 +34,9 @@ public class DtxPromoteQueryByPath implements PromoteQueryByPath
     private String path;
 
     @Column
+    private boolean rollback;
+
+    @Column
     private String trackingId;
 
     @Column
@@ -76,17 +79,26 @@ public class DtxPromoteQueryByPath implements PromoteQueryByPath
     }
 
     @Override
+    public boolean isRollback() {
+        return rollback;
+    }
+
+    public void setRollback(boolean rollback) {
+        this.rollback = rollback;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DtxPromoteQueryByPath that = (DtxPromoteQueryByPath) o;
-        return target.equals(that.target) && path.equals(that.path)
+        return rollback == that.rollback && target.equals(that.target) && path.equals(that.path)
                 && trackingId.equals(that.trackingId) && source.equals(that.source);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(target, path, trackingId, source);
+        return Objects.hash(target, path, rollback, trackingId, source);
     }
 
     @Override
@@ -94,6 +106,7 @@ public class DtxPromoteQueryByPath implements PromoteQueryByPath
         return "DtxPromoteQueryByPath{" +
                 "target='" + target + '\'' +
                 ", path='" + path + '\'' +
+                ", rollback=" + rollback +
                 ", trackingId='" + trackingId + '\'' +
                 ", source='" + source + '\'' +
                 '}';

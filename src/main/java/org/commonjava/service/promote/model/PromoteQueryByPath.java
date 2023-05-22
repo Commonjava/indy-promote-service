@@ -24,4 +24,6 @@ public interface PromoteQueryByPath
     String getTrackingId();
 
     String getSource();
+
+    boolean isRollback();
 }

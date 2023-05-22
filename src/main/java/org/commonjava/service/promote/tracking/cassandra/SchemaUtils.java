@@ -43,6 +43,7 @@ public class SchemaUtils
         return "CREATE TABLE IF NOT EXISTS " + keySpace + "." + TABLE_QUERY_BY_PATH + " ("
                 + "target varchar,"
                 + "path varchar,"
+                + "rollback boolean,"
                 + "trackingId varchar,"
                 + "source varchar,"
                 + "PRIMARY KEY ((target, path))"

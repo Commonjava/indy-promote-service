@@ -90,6 +90,7 @@ public class PromoteTrackingTest
         // Query by repo+path
         PromoteQueryByPath queryByPathResult = testHelper.queryByPath(target, path1);
         assertThat( queryByPathResult, notNullValue() );
+        assertThat( queryByPathResult.isRollback(), equalTo(false) );
         assertThat( queryByPathResult.getTrackingId(), equalTo(trackingId) );
         assertThat( queryByPathResult.getSource(), equalTo( source.toString() ));
 
@@ -99,6 +100,11 @@ public class PromoteTrackingTest
         // Get tracking records again
         records = testHelper.getTrackingRecords( trackingId );
         assertNull( records );
+
+        // Query by repo+path again
+        queryByPathResult = testHelper.queryByPath(target, path1);
+        assertThat( queryByPathResult, notNullValue() );
+        assertThat( queryByPathResult.isRollback(), equalTo(true) );
     }
 
 }
