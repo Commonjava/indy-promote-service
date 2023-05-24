@@ -19,6 +19,8 @@ public class SchemaUtils
 {
     public static final String TABLE_TRACKING = "tracking";
 
+    public static final String TABLE_QUERY_BY_PATH = "query_by_path";
+
     public static String getSchemaCreateKeyspace(String keyspace, int replica )
     {
         return "CREATE KEYSPACE IF NOT EXISTS " + keyspace
@@ -33,6 +35,18 @@ public class SchemaUtils
                 + "rollback boolean,"
                 + "result text,"
                 + "PRIMARY KEY (trackingId, promotionId)"
+                + ");";
+    }
+
+    public static String getSchemaCreateTableQueryByPath( String keySpace )
+    {
+        return "CREATE TABLE IF NOT EXISTS " + keySpace + "." + TABLE_QUERY_BY_PATH + " ("
+                + "target varchar,"
+                + "path varchar,"
+                + "rollback boolean,"
+                + "trackingId varchar,"
+                + "source varchar,"
+                + "PRIMARY KEY ((target, path))"
                 + ");";
     }
 }

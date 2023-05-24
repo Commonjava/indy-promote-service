@@ -19,10 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
 import org.commonjava.service.promote.client.storage.StorageService;
 import org.commonjava.service.promote.core.IndyObjectMapper;
-import org.commonjava.service.promote.model.PathsPromoteRequest;
-import org.commonjava.service.promote.model.PathsPromoteResult;
-import org.commonjava.service.promote.model.PromoteTrackingRecords;
-import org.commonjava.service.promote.model.StoreKey;
+import org.commonjava.service.promote.model.*;
+import org.commonjava.service.promote.tracking.cassandra.DtxPromoteQueryByPath;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -30,6 +28,7 @@ import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 
 import static io.restassured.RestAssured.given;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -130,4 +129,19 @@ public class TestHelper
         return mapper.readValue( content, PromoteTrackingRecords.class );
     }
 
+    public PromoteQueryByPath queryByPath(final StoreKey repo, final String path) throws Exception
+    {
+        Response response = given().when()
+                .get(PROMOTION_ADMIN_API + "/query/" +
+                        Paths.get(repo.getPackageType(), repo.getType().getName(), repo.getName(), path));
+
+        if ( response.statusCode() == 404 )
+        {
+            return null;
+        }
+
+        String content = response.getBody().asString();
+        //System.out.println(">>>\n" + content);
+        return mapper.readValue( content, DtxPromoteQueryByPath.class );
+    }
 }

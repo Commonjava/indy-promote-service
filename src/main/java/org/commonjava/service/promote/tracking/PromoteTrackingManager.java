@@ -21,12 +21,11 @@ import com.datastax.driver.mapping.MappingManager;
 import com.datastax.driver.mapping.Result;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.commonjava.service.promote.core.IndyObjectMapper;
+import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.PathsPromoteResult;
+import org.commonjava.service.promote.model.PromoteQueryByPath;
 import org.commonjava.service.promote.model.PromoteTrackingRecords;
-import org.commonjava.service.promote.tracking.cassandra.CassandraClient;
-import org.commonjava.service.promote.tracking.cassandra.CassandraConfiguration;
-import org.commonjava.service.promote.tracking.cassandra.DtxPromoteRecord;
-import org.commonjava.service.promote.tracking.cassandra.SchemaUtils;
+import org.commonjava.service.promote.tracking.cassandra.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +35,7 @@ import javax.inject.Inject;
 import java.util.*;
 
 import static org.commonjava.service.promote.tracking.cassandra.SchemaUtils.TABLE_TRACKING;
+import static org.commonjava.service.promote.util.PathUtils.ROOT;
 
 @ApplicationScoped
 public class PromoteTrackingManager
@@ -60,6 +60,8 @@ public class PromoteTrackingManager
     private PreparedStatement preparedTrackingRecordRollback;
 
     private Mapper<DtxPromoteRecord> promoteRecordMapper;
+
+    private Mapper<DtxPromoteQueryByPath> promoteQueryByPathMapper;
 
     public PromoteTrackingManager() {
     }
@@ -94,9 +96,11 @@ public class PromoteTrackingManager
 
         session.execute(SchemaUtils.getSchemaCreateKeyspace(keySpace, config.getKeyspaceReplicas()));
         session.execute(SchemaUtils.getSchemaCreateTableTracking(keySpace));
+        session.execute(SchemaUtils.getSchemaCreateTableQueryByPath(keySpace));
 
         MappingManager mappingManager = new MappingManager(session);
         promoteRecordMapper = mappingManager.mapper(DtxPromoteRecord.class, keySpace);
+        promoteQueryByPathMapper = mappingManager.mapper(DtxPromoteQueryByPath.class, keySpace);
 
         preparedTrackingRecordQuery = session.prepare("SELECT * FROM " + keySpace + "." + TABLE_TRACKING
                 + " WHERE trackingId=?");
@@ -156,7 +160,48 @@ public class PromoteTrackingManager
         dtxPromoteRecord.setResult(objectMapper.writeValueAsString( result ));
         promoteRecordMapper.save(dtxPromoteRecord);
 
-        logger.debug("addTrackingRecord, trackingId: {}", trackingId);
+        // Also update query-by-path table
+        updateQueryByPath(trackingId, result.getRequest(), result.getCompletedPaths(), false);
+
+        logger.debug("Add tracking record done, trackingId: {}", trackingId);
+    }
+
+    public Optional<PromoteQueryByPath> queryByRepoAndPath( String repo, String path )
+    {
+        // If the value is null, ofNullable returns an empty instance of the Optional class
+        return Optional.ofNullable(promoteQueryByPathMapper.get(repo, path));
+    }
+
+    private void updateQueryByPath(String trackingId, PathsPromoteRequest request, Set<String> completedPaths,
+                                   boolean rollback)
+    {
+        if ( completedPaths != null )
+        {
+            String target = request.getTarget().toString();
+            String source = request.getSource().toString();
+            completedPaths.forEach( path -> {
+                DtxPromoteQueryByPath et = new DtxPromoteQueryByPath();
+                et.setTarget(target);
+                et.setPath(normalizeTrackedPath(path));
+                et.setRollback(rollback);
+                et.setTrackingId(trackingId);
+                et.setSource(source);
+                promoteQueryByPathMapper.saveAsync( et );
+            });
+            logger.debug("Update query-by-path, rollback: {}, size: {}", rollback, completedPaths.size());
+        }
+    }
+
+    /**
+     * Promoted paths were sent by client. Usually they begin with '/'. For querying purpose, we prepend '/' if otherwise.
+     */
+    public static String normalizeTrackedPath(String path)
+    {
+        if (path.startsWith(ROOT))
+        {
+            return path;
+        }
+        return ROOT + path;
     }
 
     private PathsPromoteResult toPathsPromoteResult(String result)
@@ -172,9 +217,12 @@ public class PromoteTrackingManager
         return null;
     }
 
-    public void rollbackTrackingRecord(String trackingId, String promotionId)
+    public void rollbackTrackingRecord(String trackingId, PathsPromoteRequest request, Set<String> completedPaths)
     {
-        BoundStatement bound = preparedTrackingRecordRollback.bind( trackingId, promotionId );
+        BoundStatement bound = preparedTrackingRecordRollback.bind( trackingId, request.getPromotionId() );
         session.execute( bound );
+
+        // Update query-by-path table to set the rollback flag
+        updateQueryByPath(trackingId, request, completedPaths, true);
     }
 }
