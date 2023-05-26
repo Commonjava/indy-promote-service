@@ -15,20 +15,15 @@
  */
 package org.commonjava.service.promote.model;
 
-/**
- * Created by jdcasey on 9/11/15.
- */
-public interface PromoteRequest
+public interface PromoteQueryByPath
 {
-    StoreKey getSource();
+    String getTarget();
 
-    StoreKey getTarget();
+    String getPath();
 
-    boolean isDryRun();
+    String getTrackingId();
 
-    boolean isFireEvents();
+    String getSource();
 
-    boolean isAsync();
-
-    CallbackTarget getCallback();
+    boolean isRollback();
 }

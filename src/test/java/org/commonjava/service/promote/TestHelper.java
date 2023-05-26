@@ -19,9 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
 import org.commonjava.service.promote.client.storage.StorageService;
 import org.commonjava.service.promote.core.IndyObjectMapper;
-import org.commonjava.service.promote.model.PathsPromoteRequest;
-import org.commonjava.service.promote.model.PathsPromoteResult;
-import org.commonjava.service.promote.model.StoreKey;
+import org.commonjava.service.promote.model.*;
+import org.commonjava.service.promote.tracking.cassandra.DtxPromoteQueryByPath;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -29,12 +28,14 @@ import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 
 import static io.restassured.RestAssured.given;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.commonjava.service.promote.PromoteResourceTest.PROMOTE_PATH;
 import static org.commonjava.service.promote.PromoteResourceTest.ROLLBACK_PATH;
+import static org.commonjava.service.promote.jaxrs.PromoteAdminResource.PROMOTION_ADMIN_API;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -77,9 +78,14 @@ public class TestHelper
 
     public PathsPromoteResult doPromote(final PathsPromoteRequest request) throws Exception
     {
+        return doPromote( mapper.writeValueAsString(request) );
+    }
+
+    public PathsPromoteResult doPromote(final String requestJson) throws Exception
+    {
         Response response =
                 given().when()
-                        .body(mapper.writeValueAsString(request))
+                        .body(requestJson)
                         .header("Content-Type", APPLICATION_JSON)
                         .post(PROMOTE_PATH);
 
@@ -89,6 +95,7 @@ public class TestHelper
         PathsPromoteResult result = mapper.readValue( content, PathsPromoteResult.class );
         assertNotNull( result );
 
+        PathsPromoteRequest request = mapper.readValue(requestJson, PathsPromoteRequest.class);
         assertThat(result.getRequest().getSource(), equalTo(request.getSource()));
         assertThat(result.getRequest().getTarget(), equalTo(request.getTarget()));
         return result;
@@ -105,5 +112,36 @@ public class TestHelper
         String content = response.getBody().asString();
         //System.out.println(">>>\n" + content);
         return mapper.readValue( content, PathsPromoteResult.class );
+    }
+
+    public PromoteTrackingRecords getTrackingRecords(final String trackingId) throws Exception
+    {
+        Response response = given().when()
+                .get(PROMOTION_ADMIN_API + "/tracking/" + trackingId);
+
+        if ( response.statusCode() == 404 )
+        {
+            return null;
+        }
+
+        String content = response.getBody().asString();
+        //System.out.println(">>>\n" + content);
+        return mapper.readValue( content, PromoteTrackingRecords.class );
+    }
+
+    public PromoteQueryByPath queryByPath(final StoreKey repo, final String path) throws Exception
+    {
+        Response response = given().when()
+                .get(PROMOTION_ADMIN_API + "/query/" +
+                        Paths.get(repo.getPackageType(), repo.getType().getName(), repo.getName(), path));
+
+        if ( response.statusCode() == 404 )
+        {
+            return null;
+        }
+
+        String content = response.getBody().asString();
+        //System.out.println(">>>\n" + content);
+        return mapper.readValue( content, DtxPromoteQueryByPath.class );
     }
 }

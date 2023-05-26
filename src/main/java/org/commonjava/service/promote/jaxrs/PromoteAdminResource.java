@@ -15,15 +15,13 @@
  */
 package org.commonjava.service.promote.jaxrs;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 import org.commonjava.service.promote.core.IndyObjectMapper;
-import org.commonjava.service.promote.model.StoreKey;
-import org.commonjava.service.promote.model.ValidationRuleDTO;
-import org.commonjava.service.promote.model.ValidationRuleSet;
+import org.commonjava.service.promote.model.*;
+import org.commonjava.service.promote.tracking.PromoteTrackingManager;
 import org.commonjava.service.promote.util.ResponseHelper;
 import org.commonjava.service.promote.validate.PromoteValidationsManager;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
@@ -42,6 +40,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.commonjava.service.promote.tracking.PromoteTrackingManager.normalizeTrackedPath;
 
 @Tag( name = "Promote Administration", description = "Resource for managing configurations for promotion." )
 @Path( PromoteAdminResource.PROMOTION_ADMIN_API )
@@ -51,6 +50,9 @@ public class PromoteAdminResource
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     public static final String PROMOTION_ADMIN_API = "/api/promotion/admin";
+
+    @Inject
+    PromoteTrackingManager trackingManager;
 
     @Inject
     PromoteValidationsManager validationsManager;
@@ -187,6 +189,54 @@ public class PromoteAdminResource
                 return Response.status( Response.Status.NOT_FOUND ).build();
             }
         } );
+    }
+
+    @ApiOperation( "Get promotion results by trackingId" )
+    @ApiResponses( { @ApiResponse( code = 200, response = Response.class,
+            message = "The promotion results" ),
+            @ApiResponse( code = 404, message = "The promotion results do not exist" ) } )
+    @Path( "/tracking/{trackingId}" )
+    @GET
+    @Produces( APPLICATION_JSON )
+    public Response getRecordsByTrackingId( final @PathParam( "trackingId" ) String trackingId,
+                                      final @Context SecurityContext securityContext, final @Context UriInfo uriInfo )
+    {
+        Optional<PromoteTrackingRecords> records = trackingManager.getTrackingRecords( trackingId );
+        if ( records.isPresent() )
+        {
+            return Response.ok( records.get() ).build();
+        }
+        else
+        {
+            return Response.status( Response.Status.NOT_FOUND ).build();
+        }
+    }
+
+    @ApiOperation( "Query promotion info by repo+path" )
+    @ApiResponses( { @ApiResponse( code = 200, response = Response.class,
+            message = "The query result" ),
+            @ApiResponse( code = 404, message = "The repo+path do not exist" ) } )
+    @Path( "/query/{packageType}/{type}/{name}/{path: (.*)}" )
+    @GET
+    @Produces( APPLICATION_JSON )
+    public Response queryByRepoAndPath( final @PathParam( "packageType" ) String packageType,
+                                        final @PathParam( "type" ) String type,
+                                        final @PathParam( "name" ) String name,
+                                        final @PathParam( "path" ) String path,
+                                        final @Context SecurityContext securityContext, final @Context UriInfo uriInfo )
+    {
+        StoreKey repo = new StoreKey(packageType, StoreType.valueOf(type), name);
+        String trackedPath = normalizeTrackedPath(path);
+        logger.debug("Query by repo+path, repo: {}, trackedPath: {}", repo, trackedPath);
+        Optional<PromoteQueryByPath> records = trackingManager.queryByRepoAndPath( repo.toString(), trackedPath );
+        if ( records.isPresent() )
+        {
+            return Response.ok( records.get() ).build();
+        }
+        else
+        {
+            return Response.status( Response.Status.NOT_FOUND ).build();
+        }
     }
 
     private Response checkEnabledAnd( Supplier<Response> responseSupplier )
