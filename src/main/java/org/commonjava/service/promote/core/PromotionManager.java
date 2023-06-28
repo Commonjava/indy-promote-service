@@ -518,6 +518,11 @@ public class PromotionManager
         return emptySet();
     }
 
+    /**
+     * Re-downloading logic is not very useful today after we decommissioned the Scheduler.
+     * The Scheduler expired files aggressively. Now we use lazy-expiration and don't need to worry about
+     * the re-downloading scenario. I keep it as is in case any other narrow cases may trigger the re-download.
+     */
     private void reDownload(StoreKey storeKey, String path)
     {
         Response resp = null;
