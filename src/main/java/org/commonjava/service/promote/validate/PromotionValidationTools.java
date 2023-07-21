@@ -17,16 +17,14 @@ package org.commonjava.service.promote.validate;
 
 import groovy.lang.Closure;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.commonjava.atlas.maven.ident.ref.ArtifactRef;
+import org.commonjava.atlas.maven.ident.util.ArtifactPathInfo;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.cdi.util.weft.PoolWeftExecutorService;
 import org.commonjava.cdi.util.weft.WeftExecutorService;
 import org.commonjava.cdi.util.weft.WeftManaged;
-
-import org.commonjava.atlas.maven.ident.ref.ArtifactRef;
-import org.commonjava.atlas.maven.ident.util.ArtifactPathInfo;
 import org.commonjava.indy.pkg.npm.content.PackagePath;
 import org.commonjava.indy.pkg.npm.model.PackageMetadata;
-
 import org.commonjava.service.promote.client.content.ContentService;
 import org.commonjava.service.promote.config.PromoteConfig;
 import org.commonjava.service.promote.core.ContentDigester;
@@ -40,18 +38,20 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
-import java.util.*;
-
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.commonjava.service.promote.util.Batcher.batch;
 import static org.commonjava.service.promote.util.Batcher.getParalleledBatchSize;
@@ -478,11 +478,7 @@ public class PromotionValidationTools
         try
         {
             Response resp = contentService.exists(store.getPackageType(), store.getType().getName(), store.getName(), path);
-            if ( resp.getStatus() == SC_OK )
-            {
-                return true;
-            }
-            return false;
+            return resp.getStatus() == SC_OK;
         }
         catch (Exception e)
         {

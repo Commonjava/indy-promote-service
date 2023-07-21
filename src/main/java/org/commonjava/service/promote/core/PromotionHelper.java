@@ -55,7 +55,7 @@ public class PromotionHelper
 
     @Inject
     @RestClient
-    private StorageService storageService;
+    StorageService storageService;
 
     public PromotionHelper()
     {

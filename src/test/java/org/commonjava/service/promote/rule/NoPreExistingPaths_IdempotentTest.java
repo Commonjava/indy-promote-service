@@ -23,6 +23,7 @@ import org.commonjava.service.promote.model.PathsPromoteResult;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.StoreType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
@@ -60,14 +61,15 @@ public class NoPreExistingPaths_IdempotentTest
     }
 
     @Test
+    @Disabled("Disabled because no-pre-exising-rule changed to not check checksum")
     public void run() throws Exception
     {
         // Promotion the same file (with the same checksum)
         PathsPromoteResult result = ruleTestHelper.doPromote(
                 new PathsPromoteRequest( source, target, path ).setPurgeSource( true ) );
 
-        assertTrue( result.getRequest().getSource().equals( source ) );
-        assertTrue( result.getRequest().getTarget().equals( target ) );
+        assertEquals( result.getRequest().getSource(), source );
+        assertEquals( result.getRequest().getTarget(), target );
 
         assertNull( result.getError() );
 
@@ -76,7 +78,7 @@ public class NoPreExistingPaths_IdempotentTest
 
         Set<String> skipped = result.getSkippedPaths();
         assertNotNull( skipped );
-        assertTrue( skipped.size() == 1 );
+        assertEquals( 1, skipped.size() );
     }
 
 }
