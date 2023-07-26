@@ -89,11 +89,11 @@ public class PromotionManager
 
     @Inject
     @RestClient
-    private StorageService storageService;
+    StorageService storageService;
 
     @Inject
     @RestClient
-    private ContentService contentService;
+    ContentService contentService;
 
     private static String TYPE_FILE = "file"; // for listing
 
