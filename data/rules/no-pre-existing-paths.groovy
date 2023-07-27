@@ -25,7 +25,7 @@ class NoPreExistingPaths implements ValidationRule {
                         // }
                         // if ( !tools.digest(verifyStoreKey, it, ContentDigest.SHA_256).equals(sourceChecksum)) {
                         synchronized (errors) {
-                            errors.add(String.format("%s is already available with different checksum in: %s", it, verifyStoreKey))
+                            errors.add(String.format("%s is already available in: %s", it, verifyStoreKey))
                         }
                         // }
                     }
