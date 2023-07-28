@@ -445,6 +445,12 @@ public class PromotionManager
             }
         }
 
+        // if pending is empty after removing missing checksums (sometimes it happens), return normally instead of failing it
+        if ( pending.isEmpty() )
+        {
+            return new PathsPromoteResult( request, pending, emptySet(), skipped, null, validation );
+        }
+
         final FileCopyRequest copyRequest = new FileCopyRequest();
         copyRequest.setFailWhenExists( request.isFailWhenExists() );
         copyRequest.setSourceFilesystem( request.getSource().toString() );
