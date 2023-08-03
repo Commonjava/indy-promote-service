@@ -6,6 +6,6 @@
   ],
   "validationParameters": {
     "validScope": "redhat",
-    "versionPattern": "\\d\\.\\d"
+    "versionPattern": "\\d+\\.\\d+\\.\\d+\\.((?!temporary)[\\w_]+-)?redhat-\\d{5}"
   }
 }

@@ -43,13 +43,15 @@ public class ProjectVersionPatternTest
     private static final String RULE = "project-version-pattern";
 
     String invalid = "org/foo/invalid/1/invalid-1.pom";
-    String valid = "org/foo/valid/1.1/valid-1.1.pom";
+    String valid = "com/github/luben/zstd-jni/1.5.2.1-redhat-00001/zstd-jni-1.5.2.1-redhat-00001.jar";
+    String temporary = "com/github/luben/zstd-jni/1.5.2.1-temporary-redhat-00001/zstd-jni-1.5.2.1-temporary-redhat-00001.jar";
 
     @BeforeEach
     public void prepare() throws IOException
     {
         ruleTestHelper.deployContent(source, invalid, "This is a test" );
-        ruleTestHelper.deployContent(source, valid, VALID_POM_EXAMPLE );
+        ruleTestHelper.deployContent(source, valid, "This is a test" );
+        ruleTestHelper.deployContent(source, temporary, "This is a test" );
     }
 
     @Test
@@ -69,6 +71,7 @@ public class ProjectVersionPatternTest
         assertThat( errors, notNullValue() );
         assertThat( errors.contains( valid ), equalTo( false ) );
         assertThat( errors.contains( invalid ), equalTo( true ) );
+        assertThat( errors.contains( temporary ), equalTo( true ) );
     }
 
 }
