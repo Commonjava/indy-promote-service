@@ -60,8 +60,10 @@ public class StoreKeyPaths
     }
 
     @Override
-    public String toString()
-    {
-        return "PathsLockKey{" + "target=" + target + ", paths=" + paths + '}';
+    public String toString() {
+        return "StoreKeyPaths{" +
+                "target=" + target +
+                ", paths=" + paths +
+                '}';
     }
 }

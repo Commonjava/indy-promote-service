@@ -15,30 +15,35 @@
  */
 package org.commonjava.service.promote.core;
 
+import org.commonjava.service.promote.client.repository.RepositoryService;
+import org.commonjava.service.promote.model.PathStyle;
 import org.commonjava.service.promote.client.storage.*;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.StoreKey;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import static java.util.regex.Pattern.compile;
+import static org.apache.http.HttpStatus.SC_OK;
+import static org.commonjava.service.promote.model.PathStyle.hashed;
+import static org.commonjava.service.promote.model.PathStyle.plain;
 
 @ApplicationScoped
 public class PromotionHelper
 {
     public static final int DEFAULT_STORAGE_SERVICE_EXIST_CHECK_BATCH_SIZE = 1000;
+
+    private final static String PATH_STYLE_PROPERTY = "path_style";
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -56,6 +61,10 @@ public class PromotionHelper
     @Inject
     @RestClient
     StorageService storageService;
+
+    @Inject
+    @RestClient
+    RepositoryService repositoryService;
 
     public PromotionHelper()
     {
@@ -87,16 +96,19 @@ public class PromotionHelper
         return deleteResult.getFailed();
     }
 
-    static class PromotionRepoRetrievalResult
+    static class RepoRetrievalResult
     {
         final List<String> errors;
         final StoreKey targetStore, sourceStore;
+        final PathStyle pathStyle;
 
-        public PromotionRepoRetrievalResult( List<String> errors, StoreKey sourceStore, StoreKey targetStore )
+        public RepoRetrievalResult(List<String> errors, StoreKey sourceStore, StoreKey targetStore,
+                                   PathStyle pathStyle )
         {
             this.errors = errors;
             this.targetStore = targetStore;
             this.sourceStore = sourceStore;
+            this.pathStyle = pathStyle;
         }
 
         public boolean hasErrors()
@@ -105,20 +117,40 @@ public class PromotionHelper
         }
     }
 
+    static class StoreInfo
+    {
+        final StoreKey storeKey;
+        final PathStyle pathStyle;
+
+        StoreInfo(final StoreKey storeKey, final PathStyle pathStyle)
+        {
+            this.storeKey = storeKey;
+            this.pathStyle = pathStyle;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "StoreInfo{" +
+                    "storeKey=" + storeKey +
+                    ", pathStyle=" + pathStyle +
+                    '}';
+        }
+    }
+
     /**
-     * Check whether the source and target repo exists.
+     * Check whether the source and target repo exists and return useful information or errors.
      * @param request
-     * @return errors
      */
-    PromotionRepoRetrievalResult checkAndRetrieveSourceAndTargetRepos( PathsPromoteRequest request )
+    RepoRetrievalResult retrieveSourceAndTargetRepos( PathsPromoteRequest request )
     {
         List<String> errors = new ArrayList<>();
-        StoreKey sourceStore = null;
-        StoreKey targetStore = null;
+        StoreInfo sourceStoreInfo = null;
+        StoreInfo targetStoreInfo = null;
 
         try
         {
-            sourceStore = getArtifactStoreViaService( request.getSource() );
+            sourceStoreInfo = getStoreInfo(request.getSource());
         }
         catch ( Exception e )
         {
@@ -130,7 +162,7 @@ public class PromotionHelper
 
         try
         {
-            targetStore = getArtifactStoreViaService( request.getTarget() );
+            targetStoreInfo = getStoreInfo(request.getTarget());
         }
         catch ( Exception e )
         {
@@ -140,12 +172,38 @@ public class PromotionHelper
             errors.add( msg );
         }
 
-        return new PromotionRepoRetrievalResult( errors, sourceStore, targetStore );
+        if ( sourceStoreInfo == null || targetStoreInfo == null )
+        {
+            errors.add(String.format("Failed to get source or target store info, source: %s, target: %s",
+                    sourceStoreInfo, targetStoreInfo));
+            return new RepoRetrievalResult( errors, null, null, null );
+        }
+
+        return new RepoRetrievalResult( errors, sourceStoreInfo.storeKey, targetStoreInfo.storeKey,
+                sourceStoreInfo.pathStyle );
     }
 
-    private StoreKey getArtifactStoreViaService(StoreKey storeKey) {
-        // TODO: get artifact store via micro service (mainly to check if exists). Can we skip this?
-        return storeKey;
+    private StoreInfo getStoreInfo(StoreKey storeKey)
+    {
+        StoreInfo ret = null;
+        String pathStyle = null;
+        Response resp = repositoryService.getStore(storeKey.getPackageType(), storeKey.getType().getName(), storeKey.getName());
+        if ( resp.getStatus() == SC_OK )
+        {
+            String content = resp.readEntity(String.class);
+            JSONObject jsonObj = new JSONObject(content);
+            pathStyle = jsonObj.getString( PATH_STYLE_PROPERTY );
+            if ( hashed.name().equals(pathStyle) )
+            {
+                ret = new StoreInfo(storeKey, hashed);
+            }
+            else
+            {
+                ret = new StoreInfo(storeKey, plain);
+            }
+        }
+        logger.info( "Get store info, store: {}, status code: {}, pathStyle: {}", storeKey, resp.getStatus(), pathStyle );
+        return ret;
     }
 
     public static long timeInSeconds( long begin )
