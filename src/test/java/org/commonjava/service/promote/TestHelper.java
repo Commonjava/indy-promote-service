@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
 import org.commonjava.service.promote.client.storage.StorageService;
 import org.commonjava.service.promote.core.IndyObjectMapper;
+import org.commonjava.service.promote.core.IndyPathGenerator;
 import org.commonjava.service.promote.model.*;
 import org.commonjava.service.promote.tracking.cassandra.DtxPromoteQueryByPath;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -36,6 +37,7 @@ import static org.apache.http.HttpStatus.SC_OK;
 import static org.commonjava.service.promote.PromoteResourceTest.PROMOTE_PATH;
 import static org.commonjava.service.promote.PromoteResourceTest.ROLLBACK_PATH;
 import static org.commonjava.service.promote.jaxrs.PromoteAdminResource.PROMOTION_ADMIN_API;
+import static org.commonjava.service.promote.model.PathStyle.hashed;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,6 +60,9 @@ public class TestHelper
     @RestClient
     StorageService storageService;
 
+    @Inject
+    IndyPathGenerator pathGenerator;
+
     public void deployResource(StoreKey repo, String path, String resourcePath) throws IOException
     {
         try (InputStream stream = this.getClass().getClassLoader().getResourceAsStream( resourcePath ))
@@ -69,6 +74,11 @@ public class TestHelper
     public void deployContent(StoreKey repo, String path, String content)
     {
         storageService.put(repo.toString(), path, new ByteArrayInputStream(content.getBytes()));
+    }
+
+    public void deployContent(StoreKey repo, String path, PathStyle pathStyle, String content)
+    {
+        deployContent(repo, pathGenerator.getStyledPath(path, pathStyle), content);
     }
 
     public boolean exists(StoreKey repo, String path)

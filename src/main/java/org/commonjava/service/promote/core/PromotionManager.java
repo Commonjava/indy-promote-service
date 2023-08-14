@@ -49,6 +49,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 
 import static org.commonjava.service.promote.core.PromotionHelper.*;
+import static org.commonjava.service.promote.model.PathStyle.hashed;
 import static org.commonjava.service.promote.util.Batcher.batch;
 import static org.commonjava.service.promote.util.PoolUtils.detectOverload;
 
@@ -83,6 +84,9 @@ public class PromotionManager
 
     @Inject
     PromotionHelper promotionHelper;
+
+    @Inject
+    IndyPathGenerator pathGenerator;
 
     @Inject
     KafkaEventDispatcher kafkaEventDispatcher;
@@ -405,7 +409,7 @@ public class PromotionManager
     {
         long begin = System.currentTimeMillis();
 
-        PromotionHelper.PromotionRepoRetrievalResult checkResult = promotionHelper.checkAndRetrieveSourceAndTargetRepos( request );
+        RepoRetrievalResult checkResult = promotionHelper.retrieveSourceAndTargetRepos( request );
         if ( checkResult.hasErrors() )
         {
             return new PathsPromoteResult( request, pending, emptySet(), emptySet(),
@@ -423,7 +427,7 @@ public class PromotionManager
             final Set<String> missing;
             try
             {
-                missing = getMissingInBatch( sourceKey, pending );
+                missing = getMissingInBatch( sourceKey, pending, checkResult.pathStyle );
             }
             catch (PromotionException e)
             {
@@ -457,7 +461,7 @@ public class PromotionManager
         copyRequest.setTargetFilesystem( request.getTarget().toString() );
         copyRequest.setPaths( pending );
 
-        final Set<PathTransferResult> results = copy( copyRequest );
+        final Set<PathTransferResult> results = copy( copyRequest, checkResult.pathStyle );
         results.forEach( result -> {
             if ( result.error != null )
             {
@@ -492,24 +496,28 @@ public class PromotionManager
     /**
      * Get missing paths on the store. The request paths count can be very big. We split them if needed.
      */
-    private Set<String> getMissingInBatch(StoreKey storeKey, Set<String> paths) throws PromotionException
+    private Set<String> getMissingInBatch(StoreKey storeKey, Set<String> paths, PathStyle pathStyle)
+            throws PromotionException
     {
         Set<String> ret = new HashSet<>();
         Collection<Collection<String>> batches = batch( paths, DEFAULT_STORAGE_SERVICE_EXIST_CHECK_BATCH_SIZE );
         logger.debug( "Get missing in batch, total: {}, batches: {}", paths.size(), batches.size() );
         for (Collection<String> batch : batches)
         {
-            ret.addAll( getMissing(storeKey, new HashSet<>( batch )) );
+            ret.addAll( getMissing(storeKey, new HashSet<>( batch ), pathStyle) );
         }
         logger.debug( "Get missing in batch, missing: {}", ret.size() );
         return ret;
     }
 
-    private Set<String> getMissing(StoreKey storeKey, Set<String> paths) throws PromotionException
+    private Set<String> getMissing(StoreKey storeKey, Set<String> paths, PathStyle pathStyle)
+            throws PromotionException
     {
         BatchExistRequest request = new BatchExistRequest();
-        request.setFilesystem( storeKey.toString());
-        request.setPaths(paths);
+        request.setFilesystem( storeKey.toString() );
+
+        Map<String, String> styledPathsMap = getStyledPathsMap( paths, pathStyle ); // styled path -> raw path
+        request.setPaths(styledPathsMap.keySet());
         Response resp = storageService.exist(request);
         if (!isSuccess(resp))
         {
@@ -518,7 +526,7 @@ public class PromotionManager
         BatchExistResult batchExistResult = resp.readEntity(BatchExistResult.class);
         if ( batchExistResult.getMissing() != null )
         {
-            return new HashSet( batchExistResult.getMissing() );
+            return batchExistResult.getMissing().stream().map(p -> styledPathsMap.get(p)).collect(Collectors.toSet());
         }
         logger.debug("Batch existence check, no missing" );
         return emptySet();
@@ -560,14 +568,21 @@ public class PromotionManager
         }
     }
 
-    private Set<PathTransferResult> copy(FileCopyRequest copyRequest)
+    private Set<PathTransferResult> copy( final FileCopyRequest copyRequest, final PathStyle pathStyle)
     {
+        // Change raw paths to styled paths if needed
+        Set<String> rawPaths = copyRequest.getPaths();
+        Map<String, String> styledPathsMap = getStyledPathsMap( rawPaths, pathStyle );
+        copyRequest.setPaths(styledPathsMap.keySet());
+
+        logger.debug( "Invoke storage copy, request: {}", copyRequest );
         Response resp = storageService.copy(copyRequest);
         if (!isSuccess(resp))
         {
             return errResults( "Copy failed, resp status: " + resp.getStatus() );
         }
         FileCopyResult fileCopyResult = resp.readEntity(FileCopyResult.class);
+        logger.debug("Receive copy result, result: {}", fileCopyResult);
 
         if ( fileCopyResult.isSuccess() )
         {
@@ -575,18 +590,33 @@ public class PromotionManager
             Set<String> completed = fileCopyResult.getCompleted();
             if ( completed != null )
             {
-                completed.forEach( p -> results.add(new PathTransferResult(p, false, null)));
+                completed.forEach( p -> results.add(new PathTransferResult(styledPathsMap.get(p),
+                        false, null)));
             }
             Set<String> skipped = fileCopyResult.getSkipped();
             if ( skipped != null )
             {
-                skipped.forEach( p -> results.add(new PathTransferResult(p, true, null)));
+                skipped.forEach( p -> results.add(new PathTransferResult(styledPathsMap.get(p),
+                        true, null)));
             }
             return results;
         }
 
         // Otherwise return error
         return errResults( "Copy failed: " + fileCopyResult.getMessage() );
+    }
+
+    /**
+     * Get map of styledPath -> rawPath
+     */
+    private Map<String, String> getStyledPathsMap(Set<String> rawPaths, PathStyle pathStyle)
+    {
+        Map<String, String> ret = new HashMap<>();
+        rawPaths.forEach(p -> {
+            String styled = pathGenerator.getStyledPath(p, pathStyle);
+            ret.put(styled, p);
+        });
+        return ret;
     }
 
     private boolean isSuccess(Response resp) {

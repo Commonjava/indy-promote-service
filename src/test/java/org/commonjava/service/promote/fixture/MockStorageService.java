@@ -117,7 +117,6 @@ public class MockStorageService implements StorageService
 
     @Override
     public Response copy(FileCopyRequest request) {
-        logger.info( "Invoke storage copy, request: {}", request );
         Set<String> paths = request.getPaths();
         Set<String> completed = new HashSet<>();
         Set<String> skipped = new HashSet<>();
