@@ -15,6 +15,9 @@
  */
 package org.commonjava.service.promote.core;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.commonjava.service.promote.client.repository.RepositoryService;
 import org.commonjava.service.promote.model.PathStyle;
 import org.commonjava.service.promote.client.storage.*;
@@ -22,7 +25,6 @@ import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.StoreKey;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -191,8 +193,16 @@ public class PromotionHelper
         if ( resp.getStatus() == SC_OK )
         {
             String content = resp.readEntity(String.class);
-            JSONObject jsonObj = new JSONObject(content);
-            pathStyle = jsonObj.getString( PATH_STYLE_PROPERTY );
+            logger.trace("Get repo definition, {}", content);
+            try
+            {
+                pathStyle = getPathStyleFromJson(content);
+            }
+            catch (JsonProcessingException e)
+            {
+                logger.error("Failed to parse repo content", e);
+                return null;
+            }
             if ( hashed.name().equals(pathStyle) )
             {
                 ret = new StoreInfo(storeKey, hashed);
@@ -204,6 +214,13 @@ public class PromotionHelper
         }
         logger.info( "Get store info, store: {}, status code: {}, pathStyle: {}", storeKey, resp.getStatus(), pathStyle );
         return ret;
+    }
+
+    String getPathStyleFromJson(String json) throws JsonProcessingException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> map = mapper.readValue(json, new TypeReference<Map>(){});
+        return  (String) map.get( PATH_STYLE_PROPERTY );
     }
 
     public static long timeInSeconds( long begin )
