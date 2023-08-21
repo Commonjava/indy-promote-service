@@ -49,6 +49,9 @@ quarkus:
     swagger-ui:
         always-include: true
 
+    opentelemetry:
+        enabled: true
+
 indy_security:
     enabled: false
     security_bindings_yaml: config/security-bindings.yaml

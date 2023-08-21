@@ -123,6 +123,28 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-oidc-client-filter</artifactId>
         </dependency>
+        <!-- quarkus otel deps -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-opentelemetry</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-extension-trace-propagators</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk-extension-resources</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk-extension-jaeger-remote-sampler</artifactId>
+        </dependency>
+        <!-- quarkus otel deps end -->
 
         <!-- non quarkus dependencies -->
         <dependency>
