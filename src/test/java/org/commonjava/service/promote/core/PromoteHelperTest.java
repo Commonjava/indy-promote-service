@@ -18,6 +18,10 @@ package org.commonjava.service.promote.core;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
+import static org.commonjava.service.promote.core.PromotionHelper.PATH_STYLE_PROPERTY;
+import static org.commonjava.service.promote.core.PromotionHelper.TIMEOUT_SECONDS_PROPERTY;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -61,12 +65,15 @@ public class PromoteHelperTest
             "}";
 
     /**
-     * This test is to verify getPathStyleFromJson can handle duplicate property ("type") and get the right path_style.
+     * This test is to verify getObjectMapFromJson can handle duplicate property ("type") and get the right path_style.
      * The duplicate property is a legacy issue in repo definitions, and we have to workaround it.
      */
     @Test
     public void testParseRepoJson() throws JsonProcessingException
     {
-        assertThat( new PromotionHelper().getPathStyleFromJson(json), equalTo( "hashed" ) );
+        final Map<String, Object> map = new PromotionHelper().getObjectMapFromJson(json);
+        assertThat( map.get( PATH_STYLE_PROPERTY ), equalTo( "hashed" ) );
+        assertThat( map.get( TIMEOUT_SECONDS_PROPERTY ), equalTo( 0 ) );
     }
+
 }

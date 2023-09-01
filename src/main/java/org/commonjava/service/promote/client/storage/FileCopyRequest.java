@@ -15,20 +15,19 @@
  */
 package org.commonjava.service.promote.client.storage;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.util.Set;
 
 public class FileCopyRequest
 {
     private Set<String> paths;
 
-    @JsonIgnore
     private boolean failWhenExists;
 
     private String sourceFilesystem;
 
     private String targetFilesystem;
+
+    private int timeoutSeconds;
 
     public Set<String> getPaths() {
         return paths;
@@ -62,6 +61,14 @@ public class FileCopyRequest
         this.targetFilesystem = targetFilesystem;
     }
 
+    public int getTimeoutSeconds() {
+        return timeoutSeconds;
+    }
+
+    public void setTimeoutSeconds(int timeoutSeconds) {
+        this.timeoutSeconds = timeoutSeconds;
+    }
+
     @Override
     public String toString() {
         return "FileCopyRequest{" +
@@ -69,6 +76,7 @@ public class FileCopyRequest
                 ", failWhenExists=" + failWhenExists +
                 ", sourceFilesystem='" + sourceFilesystem + '\'' +
                 ", targetFilesystem='" + targetFilesystem + '\'' +
+                ", timeoutSeconds=" + timeoutSeconds +
                 '}';
     }
 }
