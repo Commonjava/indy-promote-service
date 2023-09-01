@@ -460,6 +460,7 @@ public class PromotionManager
         copyRequest.setSourceFilesystem( request.getSource().toString() );
         copyRequest.setTargetFilesystem( request.getTarget().toString() );
         copyRequest.setPaths( pending );
+        copyRequest.setTimeoutSeconds( checkResult.targetStore.timeoutSeconds );
 
         final Set<PathTransferResult> results = copy( copyRequest, checkResult.pathStyle );
         results.forEach( result -> {

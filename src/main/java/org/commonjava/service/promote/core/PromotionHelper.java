@@ -45,7 +45,9 @@ public class PromotionHelper
 {
     public static final int DEFAULT_STORAGE_SERVICE_EXIST_CHECK_BATCH_SIZE = 1000;
 
-    private final static String PATH_STYLE_PROPERTY = "path_style";
+    final static String PATH_STYLE_PROPERTY = "path_style";
+
+    final static String TIMEOUT_SECONDS_PROPERTY = "cache_timeout_seconds";
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -101,16 +103,16 @@ public class PromotionHelper
     static class RepoRetrievalResult
     {
         final List<String> errors;
-        final StoreKey targetStore, sourceStore;
+        final StoreInfo targetStore, sourceStore;
+
         final PathStyle pathStyle;
 
-        public RepoRetrievalResult(List<String> errors, StoreKey sourceStore, StoreKey targetStore,
-                                   PathStyle pathStyle )
+        public RepoRetrievalResult(List<String> errors, StoreInfo sourceStore, StoreInfo targetStore )
         {
             this.errors = errors;
             this.targetStore = targetStore;
             this.sourceStore = sourceStore;
-            this.pathStyle = pathStyle;
+            this.pathStyle = sourceStore.pathStyle;
         }
 
         public boolean hasErrors()
@@ -123,11 +125,13 @@ public class PromotionHelper
     {
         final StoreKey storeKey;
         final PathStyle pathStyle;
+        final int timeoutSeconds;
 
-        StoreInfo(final StoreKey storeKey, final PathStyle pathStyle)
+        StoreInfo(final StoreKey storeKey, final PathStyle pathStyle, int timeoutSeconds)
         {
             this.storeKey = storeKey;
             this.pathStyle = pathStyle;
+            this.timeoutSeconds = timeoutSeconds;
         }
 
         @Override
@@ -136,6 +140,7 @@ public class PromotionHelper
             return "StoreInfo{" +
                     "storeKey=" + storeKey +
                     ", pathStyle=" + pathStyle +
+                    ", timeoutSeconds=" + timeoutSeconds +
                     '}';
         }
     }
@@ -178,17 +183,24 @@ public class PromotionHelper
         {
             errors.add(String.format("Failed to get source or target store info, source: %s, target: %s",
                     sourceStoreInfo, targetStoreInfo));
-            return new RepoRetrievalResult( errors, null, null, null );
+            return new RepoRetrievalResult( errors, null, null );
         }
 
-        return new RepoRetrievalResult( errors, sourceStoreInfo.storeKey, targetStoreInfo.storeKey,
-                sourceStoreInfo.pathStyle );
+        if ( !Objects.equals( sourceStoreInfo.pathStyle, targetStoreInfo.pathStyle) )
+        {
+            errors.add(String.format("Source and target store has different pathStyle, source: %s, target: %s",
+                    sourceStoreInfo, targetStoreInfo));
+            return new RepoRetrievalResult( errors, null, null );
+        }
+
+        return new RepoRetrievalResult( errors, sourceStoreInfo, targetStoreInfo );
     }
 
     private StoreInfo getStoreInfo(StoreKey storeKey)
     {
         StoreInfo ret = null;
         String pathStyle = null;
+        int timeoutSeconds = 0;
         Response resp = repositoryService.getStore(storeKey.getPackageType(), storeKey.getType().getName(), storeKey.getName());
         if ( resp.getStatus() == SC_OK )
         {
@@ -196,31 +208,37 @@ public class PromotionHelper
             logger.trace("Get repo definition, {}", content);
             try
             {
-                pathStyle = getPathStyleFromJson(content);
+                Map<String, Object> map = getObjectMapFromJson(content);
+                pathStyle = (String) map.get( PATH_STYLE_PROPERTY );
+                Object timeout = map.get( TIMEOUT_SECONDS_PROPERTY );
+                if ( timeout != null )
+                {
+                    timeoutSeconds = (Integer) timeout;
+                }
             }
             catch (JsonProcessingException e)
             {
                 logger.error("Failed to parse repo content", e);
                 return null;
             }
+
             if ( hashed.name().equals(pathStyle) )
             {
-                ret = new StoreInfo(storeKey, hashed);
+                ret = new StoreInfo(storeKey, hashed, timeoutSeconds);
             }
             else
             {
-                ret = new StoreInfo(storeKey, plain);
+                ret = new StoreInfo(storeKey, plain, timeoutSeconds);
             }
         }
         logger.info( "Get store info, store: {}, status code: {}, pathStyle: {}", storeKey, resp.getStatus(), pathStyle );
         return ret;
     }
 
-    String getPathStyleFromJson(String json) throws JsonProcessingException
+    Map<String, Object> getObjectMapFromJson(String json) throws JsonProcessingException
     {
         ObjectMapper mapper = new ObjectMapper();
-        Map<String, Object> map = mapper.readValue(json, new TypeReference<Map>(){});
-        return  (String) map.get( PATH_STYLE_PROPERTY );
+        return mapper.readValue(json, new TypeReference<Map>(){});
     }
 
     public static long timeInSeconds( long begin )
