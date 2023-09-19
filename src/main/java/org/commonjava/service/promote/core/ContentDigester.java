@@ -20,6 +20,8 @@ import org.commonjava.service.promote.client.content.ContentService;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.util.ContentDigest;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -32,7 +34,9 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.http.HttpStatus.SC_OK;
 
 @ApplicationScoped
-public class ContentDigester {
+public class ContentDigester
+{
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     @RestClient
@@ -50,6 +54,7 @@ public class ContentDigester {
             String content = resp.readEntity(String.class);
             if ( isNotBlank( content ))
             {
+                logger.debug("Get checksum {}/{}{}, {}", key, path, digest.getFileExt(), content);
                 return content.trim();
             }
         }
@@ -59,9 +64,12 @@ public class ContentDigester {
         {
             try (InputStream is = resp.readEntity( InputStream.class ))
             {
-                return DigestUtils.sha256Hex( is );
+                String checksum = DigestUtils.sha256Hex( is );
+                logger.debug("Retrieve and digest {}/{}, {}", key, path, checksum);
+                return checksum;
             }
         }
+        logger.debug("Digest failed, {}/{}, code: {}", key, path, resp.getStatus());
         return null;
     }
 }

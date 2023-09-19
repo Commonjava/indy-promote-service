@@ -15,7 +15,6 @@
  */
 package org.commonjava.service.promote.rule;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.junit.QuarkusTest;
 import org.commonjava.service.promote.TestHelper;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
@@ -23,18 +22,20 @@ import org.commonjava.service.promote.model.PathsPromoteResult;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.StoreType;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Set;
 
-import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- *
+ * The 'no-pre-existing-paths' rule reports validation error if files already exist in target repo, but ignore & skip
+ * files if they have same checksum.
+ * In this case, we put same pom files but different jar files to source and target to check:
+ *   A. the idempotent pom file DOES NOT trigger validation error
+ *   B. different jar file triggers validation error
  */
 @QuarkusTest
 public class NoPreExistingPaths_IdempotentTest
@@ -42,43 +43,45 @@ public class NoPreExistingPaths_IdempotentTest
     @Inject
     TestHelper ruleTestHelper;
 
-    private ObjectMapper mapper = new ObjectMapper();
-
     private final String resourceDir = "no-pre-existing-paths/";
 
     private final StoreKey source = new StoreKey( "maven", StoreType.hosted, "build-idem" );
 
     private final StoreKey target = new StoreKey( "maven", StoreType.hosted, "test-builds" );;
 
-    String path = "org/foo/valid/1.1/valid-1.1.pom";
+    String path = "/test/empty/1.0.0.redhat-00297/empty-1.0.0.redhat-00297.pom";
+
+    String jarPath = "/test/empty/1.0.0.redhat-00297/empty-1.0.0.redhat-00297.jar";
 
     @BeforeEach
     public void prepare() throws IOException
     {
-        // Deploy same file to both the resource and target
+        // Put same pom files to both resource and target
         ruleTestHelper.deployResource( source, path, resourceDir + "valid.pom.xml");
         ruleTestHelper.deployResource( target, path, resourceDir + "valid.pom.xml" );
+
+        // Put different jar files to resource and target to trigger checksum validation error
+        ruleTestHelper.deployContent( source, jarPath, "This is 1.0 content");
+        ruleTestHelper.deployContent( target, jarPath, "This is changed content" );
     }
 
     @Test
-    @Disabled("Disabled because no-pre-exising-rule changed to not check checksum")
     public void run() throws Exception
     {
-        // Promotion the same file (with the same checksum)
         PathsPromoteResult result = ruleTestHelper.doPromote(
-                new PathsPromoteRequest( source, target, path ).setPurgeSource( true ) );
+                new PathsPromoteRequest( source, target ).setPurgeSource( true ) );
 
-        assertEquals( result.getRequest().getSource(), source );
-        assertEquals( result.getRequest().getTarget(), target );
+        // different jar file triggers validation error
+        assertEquals( jarPath + " is already available in maven:hosted:test-builds with different checksum",
+                result.getValidations().getValidatorErrors().get("no-pre-existing-paths"));
 
-        assertNull( result.getError() );
+        assertNotNull( result.getError() );
 
         Set<String> pending = result.getPendingPaths();
-        assertTrue( pending == null || pending.isEmpty() );
+        assertFalse( pending.isEmpty() );
 
         Set<String> skipped = result.getSkippedPaths();
-        assertNotNull( skipped );
-        assertEquals( 1, skipped.size() );
+        assertTrue( skipped.isEmpty() );
     }
 
 }
