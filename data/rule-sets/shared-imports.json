@@ -1,7 +1,11 @@
 {
   "name": "shared-imports",
-  "storeKeyPattern": "hosted:shared-imports",
+  "storeKeyPattern": "maven:hosted:shared-imports",
   "ruleNames": [
-  	"no-snapshot-paths.groovy"
-  ]
+    "no-snapshot-paths.groovy",
+    "project-version-pattern.groovy"
+  ],
+  "validationParameters": {
+    "versionPattern": "((?!redhat).)*"
+  }
 }
