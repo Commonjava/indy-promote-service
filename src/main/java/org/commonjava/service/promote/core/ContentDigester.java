@@ -19,6 +19,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.commonjava.service.promote.client.content.ContentService;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.util.ContentDigest;
+import org.commonjava.service.promote.util.ResponseHelper;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -42,34 +42,65 @@ public class ContentDigester
     @RestClient
     ContentService contentService;
 
+    @Inject
+    ResponseHelper responseHelper;
+
     public ContentDigester() {
     }
 
     public String digest(StoreKey key, String path, ContentDigest digest) throws Exception
     {
-        // retrieve the checksum file if exists
-        Response resp = contentService.retrieve(key.getPackageType(), key.getType().getName(), key.getName(), path + digest.getFileExt());
-        if ( resp.getStatus() == SC_OK )
+        // Retrieve the checksum file if it exists
+        try(Response resp = contentService.retrieve(key.getPackageType(), key.getType().getName(), key.getName(),
+                path + digest.getFileExt()) )
         {
-            String content = resp.readEntity(String.class);
-            if ( isNotBlank( content ))
+            if ( resp.getStatus() == SC_OK )
             {
-                logger.debug("Get checksum {}/{}{}, {}", key, path, digest.getFileExt(), content);
-                return content.trim();
+                String content = resp.readEntity(String.class);
+                if ( isNotBlank( content ))
+                {
+                    String checksum = content.trim();
+                    logger.debug("Get checksum {}:{}{}, {}", key, path, digest.getFileExt(), checksum);
+                    return checksum;
+                }
             }
         }
-        // retrieve the raw file and calculate checksum
-        resp = contentService.retrieve(key.getPackageType(), key.getType().getName(), key.getName(), path);
-        if ( resp.getStatus() == SC_OK )
+        catch ( Exception e )
         {
-            try (InputStream is = resp.readEntity( InputStream.class ))
+            ignore404(e);
+        }
+
+        // Retrieve the raw file and calculate checksum
+        try( Response resp = contentService.retrieve(key.getPackageType(), key.getType().getName(),
+                key.getName(), path) )
+        {
+            if (resp.getStatus() == SC_OK)
             {
-                String checksum = DigestUtils.sha256Hex( is );
-                logger.debug("Retrieve and digest {}/{}, {}", key, path, checksum);
-                return checksum;
+                try (InputStream is = resp.readEntity(InputStream.class))
+                {
+                    String checksum = DigestUtils.sha256Hex(is);
+                    logger.debug("Retrieve and digest {}:{}, {}", key, path, checksum);
+                    return checksum;
+                }
+            }
+            else
+            {
+                logger.debug("Retrieve failed, {}:{}, code: {}", key, path, resp.getStatus());
             }
         }
-        logger.debug("Digest failed, {}/{}, code: {}", key, path, resp.getStatus());
+
         return null;
+    }
+
+    private void ignore404(Exception e) throws Exception
+    {
+        if ( responseHelper.isRest404Exception(e) )
+        {
+            logger.debug("Get 404 exception, {}", e.getMessage() );
+        }
+        else
+        {
+            throw e;
+        }
     }
 }
