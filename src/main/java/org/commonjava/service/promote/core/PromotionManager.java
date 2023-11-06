@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.commonjava.cdi.util.weft.*;
 
 import org.commonjava.event.promote.PathsPromoteCompleteEvent;
+import org.commonjava.indy.model.core.PathStyle;
 import org.commonjava.service.promote.callback.PromotionCallbackHelper;
 import org.commonjava.service.promote.client.content.ContentService;
 import org.commonjava.service.promote.client.kafka.KafkaEventDispatcher;
@@ -49,7 +50,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 
 import static org.commonjava.service.promote.core.PromotionHelper.*;
-import static org.commonjava.service.promote.model.PathStyle.hashed;
 import static org.commonjava.service.promote.util.Batcher.batch;
 import static org.commonjava.service.promote.util.PoolUtils.detectOverload;
 

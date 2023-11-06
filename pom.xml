@@ -43,7 +43,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <toolchains-plugin.version>3.0.0</toolchains-plugin.version>
-        <indy-event.version>1.1</indy-event.version>
+        <indy-model.version>1.4</indy-model.version>
         <weftVersion>1.19</weftVersion>
         <jhttpcVersion>1.12</jhttpcVersion>
         <atlasVersion>1.1.1</atlasVersion>
@@ -184,7 +184,12 @@
         <dependency>
             <groupId>org.commonjava.indy.service</groupId>
             <artifactId>indy-event-model</artifactId>
-            <version>${indy-event.version}</version>
+            <version>${indy-model.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.commonjava.indy.service</groupId>
+            <artifactId>indy-model-core-java</artifactId>
+            <version>${indy-model.version}</version>
         </dependency>
         <dependency>
             <groupId>org.commonjava.indy.service</groupId>

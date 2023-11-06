@@ -17,6 +17,7 @@ package org.commonjava.service.promote;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
+import org.commonjava.indy.model.core.PathStyle;
 import org.commonjava.service.promote.client.storage.StorageService;
 import org.commonjava.service.promote.core.IndyObjectMapper;
 import org.commonjava.service.promote.core.IndyPathGenerator;
@@ -37,7 +38,6 @@ import static org.apache.http.HttpStatus.SC_OK;
 import static org.commonjava.service.promote.PromoteResourceTest.PROMOTE_PATH;
 import static org.commonjava.service.promote.PromoteResourceTest.ROLLBACK_PATH;
 import static org.commonjava.service.promote.jaxrs.PromoteAdminResource.PROMOTION_ADMIN_API;
-import static org.commonjava.service.promote.model.PathStyle.hashed;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;

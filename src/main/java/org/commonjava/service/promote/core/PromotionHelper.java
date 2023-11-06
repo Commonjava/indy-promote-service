@@ -18,8 +18,8 @@ package org.commonjava.service.promote.core;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.commonjava.indy.model.core.PathStyle;
 import org.commonjava.service.promote.client.repository.RepositoryService;
-import org.commonjava.service.promote.model.PathStyle;
 import org.commonjava.service.promote.client.storage.*;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.StoreKey;
@@ -36,9 +36,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import static java.util.regex.Pattern.compile;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.http.HttpStatus.SC_OK;
-import static org.commonjava.service.promote.model.PathStyle.hashed;
-import static org.commonjava.service.promote.model.PathStyle.plain;
+import static org.commonjava.indy.model.core.PathStyle.plain;
 
 @ApplicationScoped
 public class PromotionHelper
@@ -222,13 +222,13 @@ public class PromotionHelper
                 return null;
             }
 
-            if ( hashed.name().equals(pathStyle) )
+            if ( isBlank(pathStyle) )
             {
-                ret = new StoreInfo(storeKey, hashed, timeoutSeconds);
+                ret = new StoreInfo(storeKey, plain, timeoutSeconds);
             }
             else
             {
-                ret = new StoreInfo(storeKey, plain, timeoutSeconds);
+                ret = new StoreInfo(storeKey, PathStyle.valueOf( pathStyle ), timeoutSeconds);
             }
         }
         logger.info( "Get store info, store: {}, status code: {}, pathStyle: {}", storeKey, resp.getStatus(), pathStyle );
