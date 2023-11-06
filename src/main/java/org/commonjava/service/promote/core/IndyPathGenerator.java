@@ -16,14 +16,14 @@
 package org.commonjava.service.promote.core;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.commonjava.service.promote.model.PathStyle;
+import org.commonjava.indy.model.core.PathStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.io.File;
 
-import static org.commonjava.service.promote.model.PathStyle.hashed;
+import static org.commonjava.indy.model.core.PathStyle.hashed;
 
 @ApplicationScoped
 public class IndyPathGenerator

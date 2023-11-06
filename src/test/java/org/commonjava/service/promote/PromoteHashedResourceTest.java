@@ -28,7 +28,7 @@ import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.commonjava.service.promote.model.PathStyle.hashed;
+import static org.commonjava.indy.model.core.PathStyle.hashed;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTestResource( TestResources.class )
