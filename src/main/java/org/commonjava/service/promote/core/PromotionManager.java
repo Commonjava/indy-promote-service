@@ -20,6 +20,7 @@ import org.commonjava.cdi.util.weft.*;
 
 import org.commonjava.event.promote.PathsPromoteCompleteEvent;
 import org.commonjava.indy.model.core.PathStyle;
+import org.commonjava.indy.model.util.DefaultPathGenerator;
 import org.commonjava.service.promote.callback.PromotionCallbackHelper;
 import org.commonjava.service.promote.client.content.ContentService;
 import org.commonjava.service.promote.client.kafka.KafkaEventDispatcher;
@@ -85,8 +86,7 @@ public class PromotionManager
     @Inject
     PromotionHelper promotionHelper;
 
-    @Inject
-    IndyPathGenerator pathGenerator;
+    private DefaultPathGenerator pathGenerator = new DefaultPathGenerator();
 
     @Inject
     KafkaEventDispatcher kafkaEventDispatcher;
