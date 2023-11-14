@@ -18,9 +18,9 @@ package org.commonjava.service.promote;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
 import org.commonjava.indy.model.core.PathStyle;
+import org.commonjava.indy.model.util.DefaultPathGenerator;
 import org.commonjava.service.promote.client.storage.StorageService;
 import org.commonjava.service.promote.core.IndyObjectMapper;
-import org.commonjava.service.promote.core.IndyPathGenerator;
 import org.commonjava.service.promote.model.*;
 import org.commonjava.service.promote.tracking.cassandra.DtxPromoteQueryByPath;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -60,8 +60,7 @@ public class TestHelper
     @RestClient
     StorageService storageService;
 
-    @Inject
-    IndyPathGenerator pathGenerator;
+    private DefaultPathGenerator pathGenerator = new DefaultPathGenerator();
 
     public void deployResource(StoreKey repo, String path, String resourcePath) throws IOException
     {
