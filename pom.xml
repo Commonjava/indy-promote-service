@@ -44,9 +44,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <toolchains-plugin.version>3.0.0</toolchains-plugin.version>
         <indy-model.version>1.5-SNAPSHOT</indy-model.version>
-        <weftVersion>1.19</weftVersion>
+        <weftVersion>1.22</weftVersion>
         <jhttpcVersion>1.12</jhttpcVersion>
-        <atlasVersion>1.1.1</atlasVersion>
         <cassandra.version>3.11.2</cassandra.version>
         <cassandra-unit.version>3.11.2.0</cassandra-unit.version>
         <indysecurity.verison>1.0</indysecurity.verison>
@@ -159,11 +158,6 @@
             <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>
             <version>1.6.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.commonjava.atlas</groupId>
-            <artifactId>atlas-identities</artifactId>
-            <version>${atlasVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.commonjava.cdi.util</groupId>
