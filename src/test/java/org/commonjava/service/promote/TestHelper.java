@@ -153,4 +153,9 @@ public class TestHelper
         //System.out.println(">>>\n" + content);
         return mapper.readValue( content, DtxPromoteQueryByPath.class );
     }
+
+    public void doRecordsDeletion(String trackingId)
+    {
+        given().when().delete(PROMOTION_ADMIN_API + "/tracking/" + trackingId);
+    }
 }
