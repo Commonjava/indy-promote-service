@@ -39,8 +39,6 @@ public class PromoteTrackingTest
 
     private final StoreKey source = new StoreKey( "maven", StoreType.hosted, "source_tracking" );
 
-    private final StoreKey target = new StoreKey( "maven", StoreType.hosted, "target_tracking" );;
-
     private final String path1 = "/tracking/test/path1";
 
     @BeforeAll
@@ -59,6 +57,7 @@ public class PromoteTrackingTest
     public void run() throws Exception
     {
         final String trackingId = "build-" + new Random().nextInt();
+        final StoreKey target = new StoreKey( "maven", StoreType.hosted, "target_tracking" );;
 
         // Dry run will not change anything
         testHelper.doPromote( new PathsPromoteRequest( source, target )
@@ -105,6 +104,42 @@ public class PromoteTrackingTest
         queryByPathResult = testHelper.queryByPath(target, path1);
         assertThat( queryByPathResult, notNullValue() );
         assertThat( queryByPathResult.isRollback(), equalTo(true) );
+    }
+
+    @Test
+    public void deletion() throws Exception
+    {
+        final String trackingId = "build-" + new Random().nextInt();
+        final StoreKey target1 = new StoreKey( "maven", StoreType.hosted, "target_tracking_1" );;
+        final StoreKey target2 = new StoreKey( "maven", StoreType.hosted, "target_tracking_2" );;
+
+        // Run promotion twice to both target 1 and 2
+        PathsPromoteRequest request = new PathsPromoteRequest(source, target1).setTrackingId(trackingId);
+        testHelper.doPromote(request);
+        request = new PathsPromoteRequest(source, target2).setTrackingId(trackingId);
+        testHelper.doPromote(request);
+
+        // Get tracking records
+        PromoteTrackingRecords records = testHelper.getTrackingRecords( trackingId );
+        assertNotNull( records );
+        assertEquals(trackingId, records.getTrackingId());
+        Map<String, PathsPromoteResult> resultMap = records.getResultMap();
+        assertThat( resultMap.size(), equalTo( 2 ) );
+
+        // Query by repo+path
+        PromoteQueryByPath queryByPathResult = testHelper.queryByPath(target1, path1);
+        assertThat( queryByPathResult, notNullValue() );
+
+        // Delete the records
+        testHelper.doRecordsDeletion( trackingId );
+
+        // Get tracking records again
+        records = testHelper.getTrackingRecords( trackingId );
+        assertNull( records );
+
+        // Query by repo+path again
+        queryByPathResult = testHelper.queryByPath(target1, path1);
+        assertThat( queryByPathResult, nullValue() );
     }
 
 }

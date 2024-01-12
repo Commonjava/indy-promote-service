@@ -212,6 +212,18 @@ public class PromoteAdminResource
         }
     }
 
+    @ApiOperation( "Delete promotion results by trackingId" )
+    @ApiResponses( { @ApiResponse( code = 200, response = Response.class, message = "Deletion done" ) } )
+    @Path( "/tracking/{trackingId}" )
+    @DELETE
+    public Response deleteRecordsByTrackingId( final @PathParam( "trackingId" ) String trackingId,
+                                               final @Context SecurityContext securityContext )
+    {
+        logger.info("Delete tracking record, trackingId: {}", trackingId);
+        trackingManager.deleteTrackingRecords( trackingId );
+        return Response.ok().build();
+    }
+
     @ApiOperation( "Query promotion info by repo+path" )
     @ApiResponses( { @ApiResponse( code = 200, response = Response.class,
             message = "The query result" ),

@@ -21,10 +21,7 @@ import com.datastax.driver.mapping.MappingManager;
 import com.datastax.driver.mapping.Result;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.commonjava.service.promote.core.IndyObjectMapper;
-import org.commonjava.service.promote.model.PathsPromoteRequest;
-import org.commonjava.service.promote.model.PathsPromoteResult;
-import org.commonjava.service.promote.model.PromoteQueryByPath;
-import org.commonjava.service.promote.model.PromoteTrackingRecords;
+import org.commonjava.service.promote.model.*;
 import org.commonjava.service.promote.tracking.cassandra.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +30,7 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.commonjava.service.promote.tracking.cassandra.SchemaUtils.TABLE_TRACKING;
 import static org.commonjava.service.promote.util.PathUtils.ROOT;
@@ -56,6 +54,8 @@ public class PromoteTrackingManager
     private Session session;
 
     private PreparedStatement preparedTrackingRecordQuery;
+
+    private PreparedStatement preparedTrackingRecordDelete;
 
     private PreparedStatement preparedTrackingRecordRollback;
 
@@ -103,6 +103,9 @@ public class PromoteTrackingManager
         promoteQueryByPathMapper = mappingManager.mapper(DtxPromoteQueryByPath.class, keySpace);
 
         preparedTrackingRecordQuery = session.prepare("SELECT * FROM " + keySpace + "." + TABLE_TRACKING
+                + " WHERE trackingId=?");
+
+        preparedTrackingRecordDelete = session.prepare("DELETE FROM " + keySpace + "." + TABLE_TRACKING
                 + " WHERE trackingId=?");
 
         preparedTrackingRecordRollback = session.prepare("UPDATE " + keySpace + "." + TABLE_TRACKING
@@ -164,6 +167,43 @@ public class PromoteTrackingManager
         updateQueryByPath(trackingId, result.getRequest(), result.getCompletedPaths(), false);
 
         logger.debug("Add tracking record done, trackingId: {}", trackingId);
+    }
+
+    public void deleteTrackingRecords( String trackingId )
+    {
+        if (!trackingEnabled)
+        {
+            logger.debug("Tracking not enabled, skip deleteTrackingRecords");
+            return;
+        }
+
+        // Get record(s)
+        Optional<PromoteTrackingRecords> recordsOptional = getTrackingRecords( trackingId );
+        if (recordsOptional.isEmpty())
+        {
+            logger.debug("Tracking not found, trackingId: {}", trackingId);
+            return;
+        }
+
+        //  Delete from query-by-path table
+        final PromoteTrackingRecords records = recordsOptional.get();
+        final AtomicInteger count = new AtomicInteger();
+        records.getResultMap().values().forEach( ret -> {
+            StoreKey target = ret.getRequest().getTarget();
+            Set<String> paths = ret.getCompletedPaths();
+            if ( paths != null )
+            {
+                paths.forEach( p -> promoteQueryByPathMapper.delete( target.toString(), normalizeTrackedPath(p) ) );
+                count.incrementAndGet();
+            }
+        });
+        logger.debug("Delete from query-by-path done, trackingId: {}, count: {}", trackingId, count.get());
+
+        // Delete record(s) by tracking id
+        BoundStatement bound = preparedTrackingRecordDelete.bind( trackingId );
+        session.execute( bound );
+
+        logger.info("Delete tracking record done, trackingId: {}", trackingId);
     }
 
     public Optional<PromoteQueryByPath> queryByRepoAndPath( String repo, String path )
