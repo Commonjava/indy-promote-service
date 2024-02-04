@@ -43,7 +43,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <toolchains-plugin.version>3.0.0</toolchains-plugin.version>
-        <indy-model.version>1.5-SNAPSHOT</indy-model.version>
+        <indy-model.version>1.5</indy-model.version>
         <weftVersion>1.22</weftVersion>
         <jhttpcVersion>1.12</jhttpcVersion>
         <cassandra.version>3.11.2</cassandra.version>
