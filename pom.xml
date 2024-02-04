@@ -27,7 +27,7 @@
 
     <groupId>org.commonjava.indy.service</groupId>
     <artifactId>indy-promote-service</artifactId>
-    <version>1.8-SNAPSHOT</version>
+    <version>1.8</version>
 
     <name>Indy :: Service :: Promote</name>
     <inceptionYear>2022</inceptionYear>
@@ -36,7 +36,7 @@
         <connection>scm:git:https://github.com/commonjava/indy-promote-service</connection>
         <developerConnection>scm:git:https://github.com/commonjava/indy-promote-service</developerConnection>
         <url>https://github.com/Commonjava/indy-promote-service</url>
-        <tag>HEAD</tag>
+        <tag>indy-promote-service-1.8</tag>
     </scm>
 
     <properties>
