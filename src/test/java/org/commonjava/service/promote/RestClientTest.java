@@ -22,8 +22,8 @@ import org.commonjava.service.promote.fixture.TestResources;
 import org.commonjava.service.promote.util.ResponseHelper;
 import org.junit.jupiter.api.Test;
 
-import javax.enterprise.inject.Any;
-import javax.inject.Inject;
+import jakarta.enterprise.inject.Any;
+import jakarta.inject.Inject;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

@@ -20,19 +20,17 @@ import groovy.lang.GroovyClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.inject.spi.AnnotatedType;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.InjectionTarget;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.spi.CreationalContext;
+import jakarta.enterprise.inject.spi.AnnotatedType;
+import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.InjectionTarget;
+import jakarta.inject.Inject;
 import java.util.Arrays;
 
 @ApplicationScoped
 public class ScriptEngine
 {
-    private final Logger logger = LoggerFactory.getLogger( ScriptEngine.class.getName() );
-
     private final GroovyClassLoader groovyClassloader = new GroovyClassLoader();
 
     public ScriptEngine()
@@ -45,7 +43,7 @@ public class ScriptEngine
         return parseScriptInstance( script, type, false );
     }
 
-    public <T> T parseScriptInstance( final String script, final Class<T> type, boolean processCdiInjections )
+    private <T> T parseScriptInstance( final String script, final Class<T> type, boolean processCdiInjections )
             throws Exception
     {
         final Class<?> clazz = groovyClassloader.parseClass( script );
@@ -71,7 +69,7 @@ public class ScriptEngine
                 beanManager.createAnnotatedType( (Class<T>) bean.getClass() );
 
         InjectionTarget<T> injectionTarget =
-                beanManager.createInjectionTarget( annotatedType );
+                beanManager.getInjectionTargetFactory( annotatedType ).createInjectionTarget(null);
 
         injectionTarget.inject( bean, ctx );
 

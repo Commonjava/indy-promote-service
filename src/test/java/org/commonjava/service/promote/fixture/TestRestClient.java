@@ -17,9 +17,9 @@ package org.commonjava.service.promote.fixture;
 
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 
 @ApplicationScoped
 @Path("/")

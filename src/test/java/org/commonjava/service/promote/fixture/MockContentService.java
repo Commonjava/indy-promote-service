@@ -22,7 +22,7 @@ import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.StoreType;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 import java.io.ByteArrayInputStream;
 

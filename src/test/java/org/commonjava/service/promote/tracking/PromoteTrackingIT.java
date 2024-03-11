@@ -16,12 +16,12 @@
 package org.commonjava.service.promote.tracking;
 
 import io.quarkus.test.junit.QuarkusTest;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+//import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.commonjava.service.promote.TestHelper;
 import org.commonjava.service.promote.model.*;
 import org.junit.jupiter.api.*;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
@@ -32,7 +32,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
-public class PromoteTrackingTest
+public class PromoteTrackingIT
 {
     @Inject
     TestHelper testHelper;
@@ -44,7 +44,7 @@ public class PromoteTrackingTest
     @BeforeAll
     public static void init() throws Exception
     {
-        EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+        //EmbeddedCassandraServerHelper.startEmbeddedCassandra(); // move to 'cassandra-maven-plugin', ruhan Mar 12, 2024
     }
 
     @BeforeEach

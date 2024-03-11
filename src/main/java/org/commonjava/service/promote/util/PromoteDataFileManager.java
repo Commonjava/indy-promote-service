@@ -17,8 +17,8 @@ package org.commonjava.service.promote.util;
 
 import org.commonjava.service.promote.config.PromoteConfig;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.io.File;
 import java.nio.file.Paths;
 

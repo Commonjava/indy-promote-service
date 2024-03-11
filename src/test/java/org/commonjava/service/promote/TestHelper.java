@@ -25,15 +25,15 @@ import org.commonjava.service.promote.model.*;
 import org.commonjava.service.promote.tracking.cassandra.DtxPromoteQueryByPath;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 
 import static io.restassured.RestAssured.given;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.commonjava.service.promote.PromoteResourceTest.PROMOTE_PATH;
 import static org.commonjava.service.promote.PromoteResourceTest.ROLLBACK_PATH;

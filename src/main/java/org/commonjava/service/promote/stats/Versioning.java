@@ -18,8 +18,8 @@ package org.commonjava.service.promote.stats;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.enterprise.inject.Alternative;
-import javax.inject.Named;
+import jakarta.enterprise.inject.Alternative;
+import jakarta.inject.Named;
 
 @Alternative
 @Named

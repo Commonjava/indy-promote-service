@@ -19,7 +19,7 @@ import io.quarkus.test.Mock;
 import org.commonjava.service.promote.client.repository.RepositoryService;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 import static org.apache.http.HttpStatus.SC_OK;
 

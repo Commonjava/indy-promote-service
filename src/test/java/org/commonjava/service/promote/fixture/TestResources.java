@@ -18,7 +18,7 @@ package org.commonjava.service.promote.fixture;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
-import io.smallrye.reactive.messaging.providers.connectors.InMemoryConnector;
+//import io.smallrye.reactive.messaging.providers.connectors.InMemoryConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,6 +103,6 @@ public class TestResources
         {
             wireMockServer.stop();
         }
-        InMemoryConnector.clear();
+        //InMemoryConnector.clear();
     }
 }

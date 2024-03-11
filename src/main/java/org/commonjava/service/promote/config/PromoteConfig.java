@@ -19,7 +19,7 @@ import io.quarkus.runtime.Startup;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithName;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.io.File;
 
 @Startup
