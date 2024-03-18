@@ -81,6 +81,8 @@ kafka:
     quarkus:
         kubernetes-config:
             enabled: false
+        oidc:
+            enabled: false
         log:
             level: INFO
             category:
@@ -111,6 +113,11 @@ kafka:
 #                    topic: promote-complete
 
 "%test":
+    quarkus:
+        http:
+            test-port: 9091
+        oidc:
+            enabled: false
     cassandra:
         enabled: true
         host: localhost

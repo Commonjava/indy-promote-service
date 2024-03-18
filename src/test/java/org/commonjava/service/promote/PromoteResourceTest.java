@@ -25,7 +25,7 @@ import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.model.StoreType;
 import org.junit.jupiter.api.Test;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.HashSet;
 import java.util.Set;
 import static org.commonjava.service.promote.TestHelper.VALID_POM_EXAMPLE;

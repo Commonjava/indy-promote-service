@@ -16,7 +16,7 @@
 package org.commonjava.service.promote.tracking;
 
 import io.quarkus.test.junit.QuarkusTest;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+//import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.commonjava.service.promote.core.IndyObjectMapper;
 import org.commonjava.service.promote.model.PathsPromoteRequest;
 import org.commonjava.service.promote.model.PathsPromoteResult;
@@ -24,7 +24,7 @@ import org.commonjava.service.promote.model.PromoteTrackingRecords;
 import org.commonjava.service.promote.model.StoreKey;
 import org.junit.jupiter.api.*;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -36,7 +36,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @QuarkusTest
-public class PromoteTrackingManagerTest
+public class PromoteTrackingManagerIT
 {
     @Inject
     PromoteTrackingManager promoteTrackingManager;
@@ -47,7 +47,7 @@ public class PromoteTrackingManagerTest
     @BeforeAll
     public static void init() throws Exception
     {
-        EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+        //EmbeddedCassandraServerHelper.startEmbeddedCassandra();
     }
 
     @Test

@@ -22,12 +22,12 @@
     <parent>
         <groupId>org.commonjava</groupId>
         <artifactId>service-parent</artifactId>
-        <version>2</version>
+        <version>5-SNAPSHOT</version>
     </parent>
 
     <groupId>org.commonjava.indy.service</groupId>
     <artifactId>indy-promote-service</artifactId>
-    <version>1.9-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
 
     <name>Indy :: Service :: Promote</name>
     <inceptionYear>2022</inceptionYear>
@@ -44,12 +44,14 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <toolchains-plugin.version>3.0.0</toolchains-plugin.version>
         <indy-model.version>1.5</indy-model.version>
-        <weftVersion>1.22</weftVersion>
+        <weftVersion>2.0-SNAPSHOT</weftVersion>
         <jhttpcVersion>1.12</jhttpcVersion>
+        <cassandra-maven-plugin.version>3.8</cassandra-maven-plugin.version>
+        <groovy.version>4.0.19</groovy.version>
         <cassandra.version>3.11.2</cassandra.version>
-        <cassandra-unit.version>3.11.2.0</cassandra-unit.version>
         <indysecurity.verison>1.0</indysecurity.verison>
         <quarkus.package.type>uber-jar</quarkus.package.type>
+        <skipTests>false</skipTests>
     </properties>
 
     <dependencies>
@@ -165,9 +167,9 @@
             <version>${weftVersion}</version>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.groovy</groupId>
+            <groupId>org.apache.groovy</groupId>
             <artifactId>groovy-all</artifactId>
-            <version>3.0.9</version>
+            <version>${groovy.version}</version>
             <type>pom</type>
         </dependency>
         <dependency>
@@ -234,12 +236,6 @@
             <version>2.27.2</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit</artifactId>
-            <version>${cassandra-unit.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -251,7 +247,7 @@
         </resources>
         <plugins>
             <plugin>
-                <groupId>io.quarkus</groupId>
+                <groupId>io.quarkus.platform</groupId>
                 <artifactId>quarkus-maven-plugin</artifactId>
             </plugin>
             <plugin>
@@ -332,15 +328,49 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M7</version>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${version.plugin.surefire}</version>
+                <configuration>
+                    <includes>
+                        <exclude>**/*IT.java</exclude>
+                    </includes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cassandra-maven-plugin</artifactId>
+                <version>${cassandra-maven-plugin.version}</version>
+                <configuration>
+                    <startNativeTransport>true</startNativeTransport>
+                    <nativeTransportPort>9142</nativeTransportPort>
+                    <loadFailureIgnore>true</loadFailureIgnore>
+                    <script>${basedir}/src/test/resources/cql/load.cql</script>
+                    <skip>${skipTests}</skip>
+                </configuration>
                 <dependencies>
                     <dependency>
-                        <groupId>org.junit.jupiter</groupId>
-                        <artifactId>junit-jupiter-engine</artifactId>
-                        <version>5.4.0</version>
+                        <groupId>net.java.dev.jna</groupId>
+                        <artifactId>jna</artifactId>
+                        <version>5.8.0</version>
                     </dependency>
                 </dependencies>
+                <executions>
+                    <execution>
+                        <id>cassandra</id>
+                        <goals>
+                            <goal>start</goal>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -20,7 +20,7 @@ import org.commonjava.service.promote.TestHelper;
 import org.commonjava.service.promote.model.*;
 import org.junit.jupiter.api.Test;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
