@@ -49,7 +49,6 @@
         <cassandra-maven-plugin.version>3.8</cassandra-maven-plugin.version>
         <groovy.version>4.0.19</groovy.version>
         <cassandra.version>3.11.2</cassandra.version>
-        <indysecurity.verison>1.0</indysecurity.verison>
         <quarkus.package.type>uber-jar</quarkus.package.type>
         <skipTests>false</skipTests>
     </properties>
@@ -190,7 +189,6 @@
         <dependency>
             <groupId>org.commonjava.indy.service</groupId>
             <artifactId>indy-security</artifactId>
-            <version>${indysecurity.verison}</version>
         </dependency>
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
