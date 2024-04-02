@@ -20,6 +20,7 @@ import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;
 import com.datastax.driver.mapping.Result;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.quarkus.runtime.Startup;
 import org.commonjava.service.promote.core.IndyObjectMapper;
 import org.commonjava.service.promote.model.*;
 import org.commonjava.service.promote.tracking.cassandra.*;
@@ -35,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.commonjava.service.promote.tracking.cassandra.SchemaUtils.TABLE_TRACKING;
 import static org.commonjava.service.promote.util.PathUtils.ROOT;
 
+@Startup
 @ApplicationScoped
 public class PromoteTrackingManager
 {
