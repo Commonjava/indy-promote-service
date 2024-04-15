@@ -36,8 +36,6 @@ quarkus:
             verification: none
         token:
             issuer: any
-            refresh-token-time-skew: 60 # The refresh token time skew, in seconds.
-
     security:
         auth:
             enabled-in-dev-mode: false
@@ -121,6 +119,8 @@ kafka:
             test-port: 9091
         oidc:
             enabled: false
+        oidc-client:
+            early-tokens-acquisition: false
     cassandra:
         enabled: true
         host: localhost
