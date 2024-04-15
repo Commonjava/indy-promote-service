@@ -36,6 +36,8 @@ quarkus:
             verification: none
         token:
             issuer: any
+            refresh-token-time-skew: 60 # The refresh token time skew, in seconds.
+
     security:
         auth:
             enabled-in-dev-mode: false
@@ -45,6 +47,7 @@ quarkus:
         client-id: your_client_id
         credentials:
             secret: your_secret
+        refresh-token-time-skew: 60
 
     swagger-ui:
         always-include: true

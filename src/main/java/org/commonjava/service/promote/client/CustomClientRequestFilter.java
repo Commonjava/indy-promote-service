@@ -23,7 +23,9 @@ import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import io.quarkus.oidc.client.OidcClient;
@@ -41,7 +43,7 @@ public class CustomClientRequestFilter implements ClientRequestFilter
     @Inject
     OidcClient client;
 
-    private volatile Tokens tokens;
+    private static final ThreadLocal<Tokens> threadLocalTokens = new ThreadLocal<>();
 
     @ConfigProperty(name = "indy_security.enabled")
     boolean securityEnabled;
@@ -58,10 +60,27 @@ public class CustomClientRequestFilter implements ClientRequestFilter
             {
                 return;
             }
-            if ( tokens == null || tokens.isAccessTokenExpired() )
+            Tokens tokens = threadLocalTokens.get();
+            if ( tokens == null )
             {
-                logger.debug("Security enabled, get oidc Tokens");
-                tokens = client.getTokens().await().indefinitely();
+                logger.debug("Get oidc Tokens...");
+                tokens = client.getTokens().await().atMost(Duration.ofSeconds(60));
+                logger.debug("Get oidc Tokens done, expiresAt: {}, ", new Date(tokens.getAccessTokenExpiresAt() * 1000));
+                threadLocalTokens.set(tokens);
+            }
+            else if ( tokens.isAccessTokenExpired() || tokens.isAccessTokenWithinRefreshInterval() )
+            {
+                logger.debug("Refresh oidc Tokens...");
+                if ( tokens.isRefreshTokenExpired() )
+                {
+                    tokens = client.getTokens().await().atMost(Duration.ofSeconds(60));
+                }
+                else
+                {
+                    tokens = client.refreshTokens(tokens.getRefreshToken()).await().atMost(Duration.ofSeconds(60));
+                }
+                logger.debug("Refresh oidc Tokens done, expiresAt: {}, ", new Date(tokens.getAccessTokenExpiresAt() * 1000));
+                threadLocalTokens.set(tokens);
             }
             requestContext.getHeaders().add(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.getAccessToken());
         }
