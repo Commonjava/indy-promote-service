@@ -15,34 +15,22 @@
  */
 package org.commonjava.service.promote.client;
 
+import io.quarkus.oidc.client.filter.runtime.AbstractOidcClientRequestFilter;
 import jakarta.annotation.Priority;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.client.ClientRequestContext;
-import jakarta.ws.rs.client.ClientRequestFilter;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import io.quarkus.oidc.client.OidcClient;
-import io.quarkus.oidc.client.Tokens;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Provider
 @Priority(Priorities.AUTHENTICATION)
-public class CustomClientRequestFilter implements ClientRequestFilter
+public class CustomClientRequestFilter
+        extends AbstractOidcClientRequestFilter
 {
-    private final Logger logger = LoggerFactory.getLogger( getClass() );
-
-    @Inject
-    OidcClient client;
-
-    private volatile Tokens tokens;
-
     @ConfigProperty(name = "indy_security.enabled")
     boolean securityEnabled;
 
@@ -58,12 +46,7 @@ public class CustomClientRequestFilter implements ClientRequestFilter
             {
                 return;
             }
-            if ( tokens == null || tokens.isAccessTokenExpired() )
-            {
-                logger.debug("Security enabled, get oidc Tokens");
-                tokens = client.getTokens().await().indefinitely();
-            }
-            requestContext.getHeaders().add(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.getAccessToken());
+            super.filter( requestContext );
         }
     }
 }
