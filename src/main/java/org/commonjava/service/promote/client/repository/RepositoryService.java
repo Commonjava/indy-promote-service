@@ -15,7 +15,7 @@
  */
 package org.commonjava.service.promote.client.repository;
 
-import org.commonjava.service.promote.client.CustomClientRequestFilter;
+import org.commonjava.indy.service.security.jaxrs.CustomClientRequestFilter;
 import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
