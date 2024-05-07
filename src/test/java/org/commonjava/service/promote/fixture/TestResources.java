@@ -49,6 +49,10 @@ public class TestResources
         wireMockServer.stubFor(
                 get( urlEqualTo( "/exist-path" ) ).willReturn( aResponse().withBody( "hello" ) ) );
 
+        wireMockServer.stubFor(
+                get( urlEqualTo( "/internal-server-error" ) ).willReturn( aResponse()
+                        .withStatus(500).withBody( "...an error..." ) ) );
+
         return emptyMap();
 /*
  * After adding MockPromoteEventConsumer, this is not needed.

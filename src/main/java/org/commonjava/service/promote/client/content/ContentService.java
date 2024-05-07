@@ -16,6 +16,7 @@
 package org.commonjava.service.promote.client.content;
 
 import org.commonjava.indy.service.security.jaxrs.CustomClientRequestFilter;
+import org.commonjava.service.promote.client.ErrorResponseExceptionMapper;
 import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
@@ -25,6 +26,7 @@ import jakarta.ws.rs.core.Response;
 @Path("/api/content")
 @RegisterRestClient(configKey="content-service-api")
 @RegisterProvider(CustomClientRequestFilter.class)
+@RegisterProvider(ErrorResponseExceptionMapper.class)
 public interface ContentService
 {
     @GET

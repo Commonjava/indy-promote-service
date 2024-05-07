@@ -27,14 +27,10 @@ import jakarta.inject.Inject;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * RestClient will throw WebApplicationException when it hit 404. But we need the status code
- * rather than an exception in case of existence check. This case verifies we can get the right status via
- * responseHelper.isRest404Exception(e).
- */
 @QuarkusTest
 @QuarkusTestResource( TestResources.class )
-public class RestClientTest {
+public class RestClientTest
+{
     @Inject
     @Any
     TestRestClient errorRestClient;
@@ -43,11 +39,19 @@ public class RestClientTest {
     ResponseHelper responseHelper;
 
     @Test
-    public void run() throws Exception
+    public void run200()
     {
-        // Normal retrieve
         assertTrue(errorRestClient.get200Resource() != null);
+    }
 
+    /**
+     * RestClient will throw WebApplicationException when it hit 404. But we need the status code
+     * rather than an exception in case of existence check. This case verifies we can get the right status via
+     * responseHelper.isRest404Exception(e).
+     */
+    @Test
+    public void run404()
+    {
         // 404 response
         try
         {
@@ -61,6 +65,24 @@ public class RestClientTest {
                 return;
             }
             throw e; // fail
+        }
+    }
+
+    /**
+     * RestClient will throw WebApplicationException when it hit 500. This case makes sure the getMessage()
+     * returns the complete error message.
+     */
+    @Test
+    public void run500()
+    {
+        try
+        {
+            errorRestClient.get500Resource();
+        }
+        catch (Exception e)
+        {
+            //System.out.println(">>> " + e);
+            assertTrue( e.toString().contains("...an error..."));
         }
     }
 }

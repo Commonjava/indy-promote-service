@@ -15,6 +15,8 @@
  */
 package org.commonjava.service.promote.fixture;
 
+import org.commonjava.service.promote.client.ErrorResponseExceptionMapper;
+import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -24,6 +26,7 @@ import jakarta.ws.rs.Path;
 @ApplicationScoped
 @Path("/")
 @RegisterRestClient(baseUri="http://localhost:9090")
+@RegisterProvider(ErrorResponseExceptionMapper.class)
 public interface TestRestClient {
 
     @GET
@@ -33,5 +36,9 @@ public interface TestRestClient {
     @GET
     @Path("/exist-path")
     String get200Resource();
+
+    @GET
+    @Path("/internal-server-error")
+    String get500Resource();
 
 }
