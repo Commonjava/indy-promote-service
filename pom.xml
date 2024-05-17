@@ -44,7 +44,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <toolchains-plugin.version>3.0.0</toolchains-plugin.version>
         <indy-model.version>2.0</indy-model.version>
-        <weftVersion>2.0</weftVersion>
+        <weftVersion>2.1</weftVersion>
         <jhttpcVersion>1.12</jhttpcVersion>
         <cassandra-maven-plugin.version>3.8</cassandra-maven-plugin.version>
         <groovy.version>4.0.19</groovy.version>
