@@ -38,15 +38,22 @@ public class ErrorResponseExceptionMapper
         if (response.getStatus() == 500)
         {
             Object entity = response.getEntity();
-            if (entity instanceof InputStream)
+            if (entity != null)
             {
-                try (InputStream is = (InputStream) entity)
+                if (entity instanceof InputStream)
                 {
-                    throw new WebApplicationException(IOUtils.toString(is, Charset.defaultCharset()));
+                    try (InputStream is = (InputStream) entity)
+                    {
+                        throw new WebApplicationException(IOUtils.toString(is, Charset.defaultCharset()));
+                    }
+                    catch (IOException e)
+                    {
+                        throw new WebApplicationException("Unknown error, " + e.getMessage());
+                    }
                 }
-                catch (IOException e)
+                else
                 {
-                    throw new WebApplicationException("Unknown error");
+                    throw new WebApplicationException(entity.toString());
                 }
             }
             throw new WebApplicationException("Unknown error");
