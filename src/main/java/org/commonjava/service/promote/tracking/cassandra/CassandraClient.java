@@ -18,6 +18,7 @@ package org.commonjava.service.promote.tracking.cassandra;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.SocketOptions;
+import com.datastax.driver.core.policies.ConstantReconnectionPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +74,8 @@ public class CassandraClient
         socketOptions.setReadTimeoutMillis( config.getReadTimeoutMillis() );
         Cluster.Builder builder = Cluster.builder()
                                          .withoutJMXReporting()
+                                         .withReconnectionPolicy(
+                                                 new ConstantReconnectionPolicy( config.getConstantDelayMs() ) )
                                          .withRetryPolicy( new ConfigurableRetryPolicy( config.getReadRetries(),
                                                                                         config.getWriteRetries() ) )
                                          .addContactPoint( host )

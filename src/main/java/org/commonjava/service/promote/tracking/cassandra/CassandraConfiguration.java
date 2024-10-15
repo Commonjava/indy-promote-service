@@ -66,6 +66,10 @@ public class CassandraConfiguration
     int writeRetries;
 
     @Inject
+    @ConfigProperty( name = "cassandra.reconnect.delay", defaultValue = "60000" )
+    long constantDelayMs;
+
+    @Inject
     @ConfigProperty( name = "cassandra.keyspace" )
     Optional<String> keyspace;
 
@@ -165,6 +169,16 @@ public class CassandraConfiguration
     public void setWriteRetries( int writeRetries )
     {
         this.writeRetries = writeRetries;
+    }
+
+    public long getConstantDelayMs()
+    {
+        return constantDelayMs;
+    }
+
+    public void setConstantDelayMs( long constantDelayMs )
+    {
+        this.constantDelayMs = constantDelayMs;
     }
 
     public String getKeyspace()
