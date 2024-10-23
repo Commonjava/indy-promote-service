@@ -16,6 +16,7 @@
 package org.commonjava.service.promote.tracking;
 
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;
 import com.datastax.driver.mapping.Result;
@@ -125,7 +126,7 @@ public class PromoteTrackingManager
         }
 
         BoundStatement bound = preparedTrackingRecordQuery.bind( trackingId );
-        ResultSet resultSet = session.execute( bound );
+        ResultSet resultSet = executeSession( bound );
         Result<DtxPromoteRecord> records = promoteRecordMapper.map(resultSet);
 
         Map<String, PathsPromoteResult> resultMap = new HashMap<>();
@@ -203,7 +204,7 @@ public class PromoteTrackingManager
 
         // Delete record(s) by tracking id
         BoundStatement bound = preparedTrackingRecordDelete.bind( trackingId );
-        session.execute( bound );
+        executeSession( bound );
 
         logger.info("Delete tracking record done, trackingId: {}", trackingId);
     }
@@ -262,9 +263,41 @@ public class PromoteTrackingManager
     public void rollbackTrackingRecord(String trackingId, PathsPromoteRequest request, Set<String> completedPaths)
     {
         BoundStatement bound = preparedTrackingRecordRollback.bind( trackingId, request.getPromotionId() );
-        session.execute( bound );
+        executeSession( bound );
 
         // Update query-by-path table to set the rollback flag
         updateQueryByPath(trackingId, request, completedPaths, true);
+    }
+
+    private ResultSet executeSession ( BoundStatement bind )
+    {
+        boolean exception = false;
+        ResultSet trackingRecord = null;
+        try
+        {
+            if ( session == null || session.isClosed() )
+            {
+                client.close();
+                client.init();
+                this.init();
+            }
+            trackingRecord = session.execute( bind );
+        }
+        catch ( NoHostAvailableException e )
+        {
+            exception = true;
+            logger.error( "Cannot connect to host, reconnect once more with new session.", e );
+        }
+        finally
+        {
+            if ( exception )
+            {
+                client.close();
+                client.init();
+                this.init();
+                trackingRecord = session.execute( bind );
+            }
+        }
+        return trackingRecord;
     }
 }
