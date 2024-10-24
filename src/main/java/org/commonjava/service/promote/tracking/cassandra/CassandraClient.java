@@ -114,18 +114,15 @@ public class CassandraClient
         } );
     }
 
-    private volatile boolean closed;
-
     public void close()
     {
-        if ( !closed && cluster != null )
+        if ( cluster != null )
         {
             logger.info( "Close cassandra client" );
             sessions.forEach( ( key, value ) -> value.close() );
             sessions.clear();
             cluster.close();
             cluster = null;
-            closed = true;
         }
     }
 
