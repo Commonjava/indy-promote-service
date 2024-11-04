@@ -164,7 +164,33 @@ public class PromoteTrackingManager
         dtxPromoteRecord.setTrackingId(trackingId);
         dtxPromoteRecord.setPromotionId(result.getRequest().getPromotionId());
         dtxPromoteRecord.setResult(objectMapper.writeValueAsString( result ));
-        promoteRecordMapper.save(dtxPromoteRecord);
+
+        boolean exception = false;
+        try
+        {
+            if ( session == null || session.isClosed() )
+            {
+                client.close();
+                client.init();
+                this.init();
+            }
+            promoteRecordMapper.save(dtxPromoteRecord);
+        }
+        catch ( NoHostAvailableException e )
+        {
+            exception = true;
+            logger.error( "Cannot connect to host, reconnect once more with new session.", e );
+        }
+        finally
+        {
+            if ( exception )
+            {
+                client.close();
+                client.init();
+                this.init();
+                promoteRecordMapper.save(dtxPromoteRecord);
+            }
+        }
 
         // Also update query-by-path table
         updateQueryByPath(trackingId, result.getRequest(), result.getCompletedPaths(), false);
