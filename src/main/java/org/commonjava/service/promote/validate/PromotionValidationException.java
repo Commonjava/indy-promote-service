@@ -34,4 +34,14 @@ public class PromotionValidationException extends Exception
     public PromotionValidationException(String s) {
         super(s);
     }
+
+    @Override
+    public String toString() {
+        String baseMessage = super.toString();
+        Throwable cause = getCause();
+        if (cause != null && cause.getMessage() != null) {
+            return baseMessage + " [Cause: " + cause.getMessage() + "]";
+        }
+        return baseMessage;
+    }
 }

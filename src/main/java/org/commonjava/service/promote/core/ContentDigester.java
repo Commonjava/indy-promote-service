@@ -20,6 +20,7 @@ import org.commonjava.service.promote.client.content.ContentService;
 import org.commonjava.service.promote.model.StoreKey;
 import org.commonjava.service.promote.util.ContentDigest;
 import org.commonjava.service.promote.util.ResponseHelper;
+import org.commonjava.service.promote.validate.PromotionValidationException;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,6 +88,12 @@ public class ContentDigester
             {
                 logger.debug("Retrieve failed, {}:{}, code: {}", key, path, resp.getStatus());
             }
+        }
+        catch ( Exception e )
+        {
+            logger.debug("Retrieve and calculate checksum failed, {}:{}, Exception: {}", key, path, e.getMessage());
+            throw new PromotionValidationException(
+                "Retrieve and calculate checksum failed for " + key + ":" + path, e);
         }
 
         return null;
