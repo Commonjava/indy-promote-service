@@ -121,14 +121,3 @@ kafka:
             enabled: false
         oidc-client:
             early-tokens-acquisition: false
-    cassandra:
-        enabled: true
-        host: localhost
-        port: 9142
-        user: cassandra
-        pass: cassandra
-        keyspace: promote_tracking
-        keyspaceReplicas: 1
-        retries:
-            read: 3
-            write: 3

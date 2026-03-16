@@ -46,7 +46,6 @@
         <indy-model.version>2.0</indy-model.version>
         <weftVersion>2.1</weftVersion>
         <jhttpcVersion>1.12</jhttpcVersion>
-        <cassandra-maven-plugin.version>3.8</cassandra-maven-plugin.version>
         <groovy.version>4.0.19</groovy.version>
         <cassandra.version>3.11.2</cassandra.version>
         <quarkus.package.type>uber-jar</quarkus.package.type>
@@ -234,6 +233,12 @@
             <version>2.27.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>cassandra</artifactId>
+            <version>1.19.3</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -338,51 +343,6 @@
                         <goals>
                             <goal>integration-test</goal>
                             <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cassandra-maven-plugin</artifactId>
-                <version>${cassandra-maven-plugin.version}</version>
-                <configuration>
-                    <startNativeTransport>true</startNativeTransport>
-                    <nativeTransportPort>9142</nativeTransportPort>
-                    <loadFailureIgnore>true</loadFailureIgnore>
-                    <script>${basedir}/src/test/resources/cql/load.cql</script>
-                    <skip>${skipTests}</skip>
-                    <jvmArgs>
-                        <jvmArg>--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-exports=java.base/jdk.internal.ref=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-exports=java.base/sun.nio.ch=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-exports=java.management.rmi/com.sun.jmx.remote.internal.rmi=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-exports=java.rmi/sun.rmi.registry=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-exports=java.rmi/sun.rmi.server=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-exports=java.sql/java.sql=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/java.lang.module=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/jdk.internal.math=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/jdk.internal.module=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/jdk.internal.util.jar=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED</jvmArg>
-                    </jvmArgs>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>net.java.dev.jna</groupId>
-                        <artifactId>jna</artifactId>
-                        <version>5.8.0</version>
-                    </dependency>
-                </dependencies>
-                <executions>
-                    <execution>
-                        <id>cassandra</id>
-                        <goals>
-                            <goal>start</goal>
-                            <goal>stop</goal>
                         </goals>
                     </execution>
                 </executions>
