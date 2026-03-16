@@ -44,19 +44,34 @@ public class ErrorResponseExceptionMapper
                 {
                     try (InputStream is = (InputStream) entity)
                     {
-                        throw new WebApplicationException(IOUtils.toString(is, Charset.defaultCharset()));
+                        String errorBody = IOUtils.toString(is, Charset.defaultCharset());
+                        throw new WebApplicationException(
+                            String.format("HTTP 500 error from service: %s", errorBody),
+                            response.getStatus()
+                        );
                     }
                     catch (IOException e)
                     {
-                        throw new WebApplicationException("Unknown error, " + e.getMessage());
+                        throw new WebApplicationException(
+                            String.format("HTTP 500 error from service (failed to read response body: %s). Headers: %s",
+                                e.getMessage(), response.getHeaders()),
+                            response.getStatus()
+                        );
                     }
                 }
                 else
                 {
-                    throw new WebApplicationException(entity.toString());
+                    throw new WebApplicationException(
+                        String.format("HTTP 500 error from service: %s", entity.toString()),
+                        response.getStatus()
+                    );
                 }
             }
-            throw new WebApplicationException("Unknown error");
+            throw new WebApplicationException(
+                String.format("HTTP 500 error from service with no response body. Headers: %s, Status Info: %s",
+                    response.getHeaders(), response.getStatusInfo()),
+                response.getStatus()
+            );
         }
         return null;
     }

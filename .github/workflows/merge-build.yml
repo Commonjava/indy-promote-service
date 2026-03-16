@@ -27,7 +27,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    permissions: 
+    permissions:
       contents: read
       packages: write
 
@@ -42,7 +42,7 @@ jobs:
       with:
         distribution: 'temurin'
         architecture: x64
-        java-version: 11
+        java-version: 17
 
     - name: maven-settings-xml-action
       uses: whelk-io/maven-settings-xml-action@v14
