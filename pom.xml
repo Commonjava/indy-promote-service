@@ -292,7 +292,7 @@
                 <configuration>
                     <toolchains>
                         <jdk>
-                            <version>11</version>
+                            <version>17</version>
                             <vendor>OpenJDK</vendor>
                         </jdk>
                     </toolchains>
@@ -352,6 +352,23 @@
                     <loadFailureIgnore>true</loadFailureIgnore>
                     <script>${basedir}/src/test/resources/cql/load.cql</script>
                     <skip>${skipTests}</skip>
+                    <jvmArgs>
+                        <jvmArg>--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-exports=java.base/jdk.internal.ref=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-exports=java.base/sun.nio.ch=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-exports=java.management.rmi/com.sun.jmx.remote.internal.rmi=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-exports=java.rmi/sun.rmi.registry=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-exports=java.rmi/sun.rmi.server=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-exports=java.sql/java.sql=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=java.base/java.lang.module=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=java.base/jdk.internal.math=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=java.base/jdk.internal.module=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=java.base/jdk.internal.util.jar=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED</jvmArg>
+                    </jvmArgs>
                 </configuration>
                 <dependencies>
                     <dependency>
